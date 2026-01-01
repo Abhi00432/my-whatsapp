@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Join Chat</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body class="join-body">
+
+<div class="join-box">
+  <h2>WhatsApp</h2>
+  <input id="username" placeholder="Enter your name">
+  <button onclick="join()">Join</button>
+</div>
+
+<script>
+function join() {
+  const name = document.getElementById("username").value.trim();
+  if (!name) return alert("Enter name");
+  localStorage.setItem("username", name);
+  window.location = "chat.html";
+}
+</script>
+
+</body>
+</html>

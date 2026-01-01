@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WhatsApp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>WhatsApp</header>
+
+<div id="chat-box"></div>
+<div id="typing"></div>
+
+<div class="input-box">
+  <textarea id="msg" placeholder="Message"></textarea>
+  <button onclick="sendMsg()">➤</button>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="chat.js"></script>
+</body>
+</html>
