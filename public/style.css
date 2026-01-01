@@ -4,43 +4,48 @@ body {
   background: #ece5dd;
 }
 
-header {
+.header {
   background: #075e54;
   color: white;
-  padding: 12px;
+  padding: 15px;
   text-align: center;
 }
 
-#chat-box {
-  height: 80vh;
-  overflow-y: auto;
+#messages {
+  height: calc(100vh - 120px);
   padding: 10px;
+  overflow-y: auto;
+}
+
+.msg {
+  background: #dcf8c6;
+  padding: 8px 12px;
+  margin: 6px;
+  border-radius: 8px;
+  width: fit-content;
 }
 
 .me {
-  background: #dcf8c6;
-  margin: 5px;
-  padding: 8px;
-  border-radius: 5px;
-  align-self: right;
-}
-
-.other {
-  background: white;
-  margin: 5px;
-  padding: 8px;
-  border-radius: 5px;
+  margin-left: auto;
 }
 
 .input-box {
   display: flex;
+  padding: 10px;
+  background: #f0f0f0;
 }
 
-textarea {
+input {
   flex: 1;
   padding: 10px;
 }
-
 button {
   padding: 10px;
+}
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
 }

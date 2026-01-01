@@ -1,46 +1,18 @@
-const socket = io();
-const username = localStorage.getItem("username") || "Guest";
+const messages = document.getElementById("messages");
 
-const msgInput = document.getElementById("msg");
-const box = document.getElementById("chat-box");
-const typing = document.getElementById("typing");
+function send() {
+  const input = document.getElementById("msg");
+  if (!input.value) return;
 
-msgInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMsg();
-  } else {
-    socket.emit("typing", username);
-  }
-});
+  const div = document.createElement("div");
+  div.className = "msg me";
+  div.innerText = input.value;
 
-msgInput.addEventListener("keyup", () => {
-  setTimeout(() => socket.emit("stopTyping"), 800);
-});
-
-function sendMsg() {
-  const text = msgInput.value.trim();
-  if (!text) return;
-
-  socket.emit("chatMessage", {
-    user: username,
-    msg: text,
-    time: new Date().toLocaleTimeString()
-  });
-
-  msgInput.value = "";
+  messages.appendChild(div);
+  input.value = "";
+  messages.scrollTop = messages.scrollHeight;
 }
 
-socket.on("chatMessage", data => {
-  const div = document.createElement("div");
-  div.className = data.user === username ? "me" : "other";
-  div.innerHTML = `<b>${data.user}</b><br>${data.msg}<small>${data.time}</small>`;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
-});
-
-socket.on("typing", user => {
-  if (user !== username) typing.innerText = `${user} typing...`;
-});
-
-socket.on("stopTyping", () => typing.innerText = "");
+function enterSend(e) {
+  if (e.key === "Enter") send();
+}
