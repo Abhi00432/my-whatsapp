@@ -9,35 +9,36 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 10000;
 
-// static files
-app.use(express.static(__dirname));
+// static files (IMPORTANT)
+app.use(express.static(path.join(__dirname)));
 
-// routes
+// HOME
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// CHAT
 app.get("/chat", (req, res) => {
-    res.sendFile(path.join(__dirname, "chat.html"));
+  res.sendFile(path.join(__dirname, "chat.html"));
 });
 
-// socket logic
+// SOCKET
 io.on("connection", (socket) => {
-    console.log("User connected");
+  console.log("User connected");
 
-    socket.on("message", (msg) => {
-        socket.broadcast.emit("message", msg);
-    });
+  socket.on("message", (msg) => {
+    socket.broadcast.emit("message", msg);
+  });
 
-    socket.on("typing", () => {
-        socket.broadcast.emit("typing");
-    });
+  socket.on("typing", () => {
+    socket.broadcast.emit("typing");
+  });
 
-    socket.on("disconnect", () => {
-        console.log("User disconnected");
-    });
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
 });
 
 server.listen(PORT, () => {
-    console.log("Server running on port", PORT);
+  console.log("Server running on port", PORT);
 });

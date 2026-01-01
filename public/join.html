@@ -1,26 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join Chat</title>
-  <link rel="stylesheet" href="style.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body class="join-body">
-
-<div class="join-box">
-  <h2>WhatsApp</h2>
-  <input id="username" placeholder="Enter your name">
-  <button onclick="join()">Join</button>
-</div>
-
-<script>
-function join() {
-  const name = document.getElementById("username").value.trim();
-  if (!name) return alert("Enter name");
-  localStorage.setItem("username", name);
-  window.location = "chat.html";
-}
-</script>
-
+<body style="text-align:center;margin-top:40px">
+  <h2>Join WhatsApp Clone</h2>
+  <a href="/chat">Enter Chat</a>
 </body>
 </html>
