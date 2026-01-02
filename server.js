@@ -7,38 +7,41 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 10000;
+app.use(express.static(path.join(__dirname, "public")));
 
-// static files (IMPORTANT)
-app.use(express.static(path.join(__dirname)));
+const users = {}; // socket.id -> username
 
-// HOME
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
-
-// CHAT
-app.get("/chat", (req, res) => {
-  res.sendFile(path.join(__dirname, "chat.html"));
-});
-
-// SOCKET
 io.on("connection", (socket) => {
-  console.log("User connected");
 
-  socket.on("message", (msg) => {
-    socket.broadcast.emit("message", msg);
+  socket.on("join", (username) => {
+    users[socket.id] = username;
+
+    socket.broadcast.emit("info", `${username} online`);
+  });
+
+  socket.on("send-message", (msg) => {
+    socket.broadcast.emit("receive-message", {
+      user: users[socket.id],
+      message: msg,
+    });
   });
 
   socket.on("typing", () => {
-    socket.broadcast.emit("typing");
+    socket.broadcast.emit("typing", users[socket.id]);
+  });
+
+  socket.on("stop-typing", () => {
+    socket.broadcast.emit("stop-typing", users[socket.id]);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    socket.broadcast.emit("info", `${users[socket.id]} offline`);
+    delete users[socket.id];
   });
 });
 
+const PORT = process.env.PORT || 10000;
+
 server.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+  console.log("✅ Server running on port " + PORT);
 });

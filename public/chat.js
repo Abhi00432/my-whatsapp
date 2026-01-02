@@ -1,48 +1,79 @@
 const socket = io();
 
-const msgInput = document.getElementById("msg");
+const username = localStorage.getItem("username");
+if (!username) location.href = "join.html";
+
+socket.emit("join", username);
+
 const messages = document.getElementById("messages");
+const input = document.getElementById("msg");
 
-function send() {
-  if (msgInput.value.trim() === "") return;
+let typingDiv = null;
 
-  addMessage(msgInput.value, true);
-  socket.emit("message", msgInput.value);
-  msgInput.value = "";
-}
-
-function addMessage(text, mine = false) {
+/* helper */
+function addInfo(text) {
   const div = document.createElement("div");
-  div.className = "msg" + (mine ? " me" : "");
+  div.className = "info";
   div.innerText = text;
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
 }
 
-msgInput.addEventListener("input", () => {
-  socket.emit("typing");
-});
-
-socket.on("message", (msg) => {
-  addMessage(msg, false);
-});
-
-socket.on("typing", () => {
-  // typing indicator
-  let typing = document.getElementById("typing");
-  if (!typing) {
-    typing = document.createElement("div");
-    typing.id = "typing";
-    typing.innerText = "Typing...";
-    typing.style.fontSize = "12px";
-    messages.appendChild(typing);
-  }
-
-  setTimeout(() => {
-    typing?.remove();
-  }, 1000);
-});
-
-function enterSend(e) {
-  if (e.key === "Enter") send();
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = cls;
+  div.innerText = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
 }
+
+/* SEND */
+function sendMessage() {
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  addMessage("You: " + msg, "my-msg");
+  socket.emit("send-message", msg);
+
+  input.value = "";
+  socket.emit("stop-typing");
+}
+
+/* ENTER */
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    sendMessage();
+  } else {
+    socket.emit("typing");
+  }
+});
+
+/* RECEIVE */
+socket.on("receive-message", (data) => {
+  addMessage(data.user + ": " + data.message, "other-msg");
+});
+
+/* INFO (online / offline) */
+socket.on("info", (text) => {
+  addInfo(text);
+});
+
+/* TYPING TEXT (UI SAME, info style) */
+socket.on("typing", (user) => {
+  if (typingDiv) return;
+
+  typingDiv = document.createElement("div");
+  typingDiv.className = "info";
+  typingDiv.innerText = `${user} is typing...`;
+
+  messages.appendChild(typingDiv);
+  messages.scrollTop = messages.scrollHeight;
+});
+
+socket.on("stop-typing", () => {
+  if (typingDiv) {
+    typingDiv.remove();
+    typingDiv = null;
+  }
+});

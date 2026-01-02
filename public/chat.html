@@ -1,33 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chat</title>
-    <link rel="stylesheet" href="style.css" />
+  <title>Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+<body class="chat-body">
 
-<body>
+<div class="chat-header">WhatsApp Clone</div>
 
-    <div class="app">
+<div id="messages" class="chat-area"></div>
 
-        <div class="header">WhatsApp</div>
-
-        <div id="messages"></div>
-
-        <div class="input-box">
-            <input id="msg" placeholder="Message" onkeydown="enterSend(event)" />
-            <button onclick="send()">➤</button>
-        </div>
-
-    </div>
+<div class="chat-input">
+  <input id="msg" placeholder="Type a message" />
+  <button onclick="sendMessage()">➤</button>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="chat.js"></script>
-
-    
-
 </body>
-
 </html>
