@@ -13,95 +13,105 @@ const io = new Server(server);
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
-/* ensure uploads folder exists (Render safety) */
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
+/* ensure uploads folder */
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 
 /* MongoDB */
 mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => {
-    console.error("Mongo error:", err);
-    process.exit(1);
-  });
+  .then(()=>console.log("MongoDB connected"))
+  .catch(e=>{ console.error(e); process.exit(1); });
 
-/* Model */
+/* User model */
 const User = mongoose.model("User", {
   deviceId: String,
   name: String,
   dp: String,
-  socketId: String
+  socketId: String,
+  online: { type: Boolean, default: false }
 });
 
 /* Multer */
 const storage = multer.diskStorage({
   destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
+  filename: (req,file,cb)=>
+    cb(null, Date.now()+path.extname(file.originalname))
 });
 const upload = multer({ storage });
 
 /* Pages */
-app.get("/", (req, res) => res.sendFile(__dirname + "/join.html"));
-app.get("/chat", (req, res) => res.sendFile(__dirname + "/chat.html"));
+app.get("/", (req,res)=>res.sendFile(__dirname+"/join.html"));
+app.get("/chat", (req,res)=>res.sendFile(__dirname+"/chat.html"));
 
-/* Join (CRASH SAFE) */
-app.post("/join", upload.single("dp"), async (req, res) => {
-  try {
-    const { name, deviceId } = req.body;
+/* Join */
+app.post("/join", upload.single("dp"), async (req,res)=>{
+  const { name, deviceId } = req.body;
+  let user = await User.findOne({ deviceId });
 
-    if (!name || !deviceId) {
-      return res.status(400).json({ error: "Missing data" });
-    }
+  const dpPath = req.file
+    ? "/uploads/"+req.file.filename
+    : "/uploads/default.png";
 
-    let user = await User.findOne({ deviceId });
-
-    const dpPath = req.file
-      ? "/uploads/" + req.file.filename
-      : "/uploads/default.png";
-
-    if (user) {
-      user.name = name;
-      user.dp = dpPath;
-      await user.save();
-    } else {
-      user = await User.create({
-        deviceId,
-        name,
-        dp: dpPath
-      });
-    }
-
-    res.json(user);
-  } catch (err) {
-    console.error("Join error:", err);
-    res.status(500).json({ error: "Join failed" });
+  if(user){
+    user.name = name;
+    user.dp = dpPath;
+    await user.save();
+  }else{
+    user = await User.create({ deviceId, name, dp: dpPath });
   }
+  res.json(user);
 });
 
 /* Users */
-app.get("/users", async (req, res) => {
+app.get("/users", async (req,res)=>{
   res.json(await User.find());
+});
+
+/* Voice upload */
+app.post("/voice", upload.single("audio"), (req,res)=>{
+  res.json({ url: "/uploads/"+req.file.filename });
 });
 
 /* Socket */
 io.on("connection", socket => {
-  socket.on("register", async id => {
-    await User.findByIdAndUpdate(id, { socketId: socket.id });
+
+  socket.on("register", async userId=>{
+    socket.userId = userId;
+    await User.findByIdAndUpdate(userId,{ socketId:socket.id, online:true });
+    io.emit("presence",{ userId, online:true });
   });
 
-  socket.on("msg", async data => {
-    const toUser = await User.findById(data.to);
-    if (toUser?.socketId) {
-      io.to(toUser.socketId).emit("msg", data);
+  socket.on("msg", async d=>{
+    const u = await User.findById(d.to);
+    if(u?.socketId) io.to(u.socketId).emit("msg", d);
+  });
+
+  socket.on("voice", async d=>{
+    const u = await User.findById(d.to);
+    if(u?.socketId) io.to(u.socketId).emit("voice", d);
+  });
+
+  socket.on("typing", d=>{
+    io.to(d.to).emit("typing",{ from:d.from });
+  });
+
+  socket.on("stopTyping", d=>{
+    io.to(d.to).emit("stopTyping",{ from:d.from });
+  });
+
+  /* CALL signaling */
+  socket.on("call-offer", d=>io.to(d.to).emit("call-offer", d));
+  socket.on("call-answer", d=>io.to(d.to).emit("call-answer", d));
+  socket.on("call-ice", d=>io.to(d.to).emit("call-ice", d));
+  socket.on("call-end", d=>io.to(d.to).emit("call-end", d));
+
+  socket.on("disconnect", async ()=>{
+    if(socket.userId){
+      await User.findByIdAndUpdate(socket.userId,{ online:false });
+      io.emit("presence",{ userId:socket.userId, online:false });
     }
   });
 });
 
-/* PORT (Render requirement) */
+/* PORT */
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, "0.0.0.0", () => {
-  console.log("🚀 Server running on port", PORT);
-});
+server.listen(PORT,"0.0.0.0",()=>console.log("Server running",PORT));
