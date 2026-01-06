@@ -72,7 +72,12 @@
     /* device id */
     let deviceId = localStorage.deviceId;
     if (!deviceId) {
-      deviceId = crypto.randomUUID();
+      let deviceId = localStorage.deviceId;
+      if (!deviceId) {
+        deviceId = Math.random().toString(36).substring(2) + Date.now();
+        localStorage.deviceId = deviceId;
+      }
+
       localStorage.deviceId = deviceId;
     }
 
