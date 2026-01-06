@@ -3,26 +3,41 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* JOIN PAGE */
-.join-body {
-  display: flex;
+.join {
   height: 100vh;
-  align-items: center;
+  display: flex;
   justify-content: center;
+  align-items: center;
   background: #075e54;
 }
 
 .join-box {
   background: #fff;
   padding: 30px;
-  border-radius: 8px;
+  width: 320px;
+  border-radius: 12px;
   text-align: center;
 }
 
-.join-box input {
+.join-box img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 3px solid #25d366;
+  margin-bottom: 20px;
+}
+
+#dpInput {
+  display: none;
+}
+
+.join-box input[type="text"] {
   width: 100%;
   padding: 10px;
-  margin: 10px 0;
+  margin-bottom: 15px;
+  font-size: 16px;
 }
 
 .join-box button {
@@ -32,65 +47,6 @@ body {
   border: none;
   color: #fff;
   font-size: 16px;
-}
-
-/* CHAT PAGE */
-.chat-body {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.chat-header {
-  background: #075e54;
-  color: #fff;
-  padding: 15px;
-  text-align: center;
-}
-
-.chat-area {
-  flex: 1;
-  padding: 10px;
-  background: #ece5dd;
-  overflow-y: auto;
-}
-
-.my-msg {
-  text-align: right;
-  margin: 5px;
-  background: #dcf8c6;
-  padding: 8px;
-  border-radius: 5px;
-}
-
-.other-msg {
-  text-align: left;
-  margin: 5px;
-  background: #fff;
-  padding: 8px;
-  border-radius: 5px;
-}
-
-.info {
-  text-align: center;
-  color: gray;
-  font-size: 12px;
-}
-
-.chat-input {
-  display: flex;
-  padding: 10px;
-  background: #f0f0f0;
-}
-
-.chat-input input {
-  flex: 1;
-  padding: 10px;
-}
-
-.chat-input button {
-  padding: 10px 15px;
-  background: #25d366;
-  border: none;
-  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
 }

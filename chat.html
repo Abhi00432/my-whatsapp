@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      display: flex;
+      height: 100vh
+    }
+
+    #users {
+      width: 30%;
+      background: #075e54;
+      color: #fff
+    }
+
+    .user {
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center
+    }
+
+    .user img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      margin-right: 10px
+    }
+
+    #chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column
+    }
+
+    #header {
+      background: #128c7e;
+      color: #fff;
+      padding: 10px;
+      display: flex;
+      align-items: center
+    }
+
+    #header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px
+    }
+
+    #msgs {
+      flex: 1;
+      padding: 10px;
+      background: #ece5dd;
+      overflow: auto
+    }
+
+    .me {
+      text-align: right;
+      margin: 5px
+    }
+
+    #ctrl {
+      display: flex;
+      padding: 10px
+    }
+
+    #ctrl input {
+      flex: 1;
+      padding: 10px
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="users"></div>
+
+  <div id="chat">
+    <div id="header">
+      <img id="chatDp">
+      <span id="chatName">Select user</span>
+    </div>
+
+    <div id="msgs"></div>
+
+    <div id="ctrl">
+      <input id="msgInput" placeholder="Type message">
+      <button onclick="send()">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const me = JSON.parse(localStorage.user);
+    const socket = io();
+    let to = null;
+
+    chatDp.src = me.dp;
+    chatName.innerText = me.name;
+
+    socket.emit("register", me._id);
+
+    /* load users */
+    fetch("/users")
+      .then(r => r.json())
+      .then(list => {
+        users.innerHTML = list
+          .filter(u => u._id !== me._id)
+          .map(u => `
+        <div class="user" onclick="openChat('${u._id}','${u.name}','${u.dp}')">
+          <img src="${u.dp}"> ${u.name}
+        </div>
+      `).join("");
+      });
+
+    function openChat(id, n, d) {
+      to = id; chatName.innerText = n; chatDp.src = d; msgs.innerHTML = "";
+    }
+
+    function send() {
+      if (!to || !msgInput.value.trim()) return;
+      socket.emit("msg", { from: me._id, to, text: msgInput.value });
+      msgs.innerHTML += `<div class="me">${msgInput.value}</div>`;
+      msgInput.value = "";
+    }
+
+    /* ENTER KEY FIX */
+    msgInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); send(); }
+    });
+
+    socket.on("msg", d => {
+      if (d.from === to) msgs.innerHTML += `<div>${d.text}</div>`;
+    });
+  </script>
+
+</body>
+
+</html>

@@ -10,8 +10,9 @@
     "@capacitor/cli": "^8.0.0",
     "@capacitor/core": "^8.0.0",
     "dotenv": "^17.2.3",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.0",
-    "socket.io": "^4.7.2"
+    "express": "^4.22.1",
+    "mongoose": "^8.21.0",
+    "multer": "^2.0.2",
+    "socket.io": "^4.8.3"
   }
 }
