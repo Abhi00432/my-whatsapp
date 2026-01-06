@@ -14,8 +14,8 @@ app.use("/uploads", express.static("uploads"));
 
 /* MongoDB */
 mongoose.connect(process.env.MONGO_URL)
-  .then(()=>console.log("MongoDB connected"))
-  .catch(e=>console.log(e));
+  .then(() => console.log("MongoDB connected"))
+  .catch(e => console.log(e));
 
 /* User model (deviceId UNIQUE) */
 const User = mongoose.model("User", {
@@ -39,23 +39,32 @@ app.get("/chat", (req, res) => res.sendFile(__dirname + "/chat.html"));
 
 /* JOIN = CREATE OR UPDATE (NO DUPLICATE EVER) */
 app.post("/join", upload.single("dp"), async (req, res) => {
-  const { name, deviceId } = req.body;
+  try {
+    const { name, deviceId } = req.body;
 
-  let user = await User.findOne({ deviceId });
+    let user = await User.findOne({ deviceId });
 
-  if (user) {
-    user.name = name;
-    if (req.file) user.dp = "/uploads/" + req.file.filename;
-    await user.save();
-  } else {
-    user = await User.create({
-      deviceId,
-      name,
-      dp: "/uploads/" + req.file.filename
-    });
+    const dpPath = req.file
+      ? "/uploads/" + req.file.filename
+      : "/uploads/default.png"; // fallback
+
+    if (user) {
+      user.name = name;
+      user.dp = dpPath;
+      await user.save();
+    } else {
+      user = await User.create({
+        deviceId,
+        name,
+        dp: dpPath
+      });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Join failed" });
   }
-
-  res.json(user);
 });
 
 /* USERS */
