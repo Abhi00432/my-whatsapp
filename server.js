@@ -1,140 +1,75 @@
 const express = require("express");
 const http = require("http");
+const path = require("path");
 const { Server } = require("socket.io");
-const mongoose = require("mongoose");
-require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
+  cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// ================= MongoDB =================
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.log("❌ MongoDB Error:", err));
+// ===== static files =====
+app.use(express.static(path.join(__dirname, "public")));
 
-// ================= Schemas =================
-const messageSchema = new mongoose.Schema({
-  name: String,
-  message: String,
-  type: { type: String, default: "text" }, // text | audio
-  time: String
+// ===== root =====
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "chat.html"));
 });
 
-const Message = mongoose.model("Message", messageSchema);
+// ===== online users =====
+let users = [];
 
-// ================= Online Users (Memory) =================
-let onlineUsers = [];
-
-// ================= Socket Logic =================
+// ===== socket =====
 io.on("connection", (socket) => {
-  console.log("🟢 Connected:", socket.id);
+  console.log("🟢 connected:", socket.id);
 
-  // -------- JOIN --------
   socket.on("join", (name) => {
-    onlineUsers = onlineUsers.filter(u => u.socketId !== socket.id);
-
-    onlineUsers.push({
-      socketId: socket.id,
-      name
-    });
-
-    io.emit("onlineUsers", onlineUsers);
+    users = users.filter(u => u.id !== socket.id);
+    users.push({ id: socket.id, name });
+    io.emit("online-users", users);
   });
 
-  // -------- TEXT MESSAGE --------
-  socket.on("sendMessage", async (data) => {
-    const time = new Date().toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-    const msg = new Message({
-      name: data.name,
-      message: data.message,
-      type: "text",
-      time
-    });
-
-    await msg.save();
-
-    io.emit("receiveMessage", msg);
+  socket.on("typing", (name) => {
+    socket.broadcast.emit("typing", name);
   });
 
-  // -------- VOICE MESSAGE --------
-  socket.on("sendVoice", async (data) => {
-    const time = new Date().toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-    const msg = new Message({
-      name: data.name,
-      message: data.audio, // base64 audio
-      type: "audio",
-      time
-    });
-
-    await msg.save();
-
-    io.emit("receiveMessage", msg);
+  socket.on("stopTyping", () => {
+    socket.broadcast.emit("stopTyping");
   });
 
-  // ================= VOICE CALL (WebRTC) =================
+  socket.on("send-message", (data) => {
+    io.emit("receive-message", data);
+  });
 
-  // call start
-  socket.on("callUser", (data) => {
-    io.to(data.to).emit("incomingCall", {
+  socket.on("send-voice", (data) => {
+    io.emit("receive-voice", data);
+  });
+
+  // ===== voice call signaling =====
+  socket.on("call-user", data => {
+    io.to(data.to).emit("incoming-call", {
       from: socket.id,
       name: data.name
     });
   });
 
-  // call accepted
-  socket.on("acceptCall", (data) => {
-    io.to(data.to).emit("callAccepted", {
-      from: socket.id
-    });
+  socket.on("accept-call", data => {
+    io.to(data.to).emit("call-accepted", data);
   });
 
-  // WebRTC signaling
-  socket.on("webrtcOffer", (data) => {
-    io.to(data.to).emit("webrtcOffer", data);
+  socket.on("ice-candidate", data => {
+    io.to(data.to).emit("ice-candidate", data);
   });
 
-  socket.on("webrtcAnswer", (data) => {
-    io.to(data.to).emit("webrtcAnswer", data);
-  });
-
-  socket.on("webrtcIce", (data) => {
-    io.to(data.to).emit("webrtcIce", data);
-  });
-
-  // call end
-  socket.on("endCall", (data) => {
-    io.to(data.to).emit("callEnded");
-  });
-
-  // -------- DISCONNECT --------
   socket.on("disconnect", () => {
-    console.log("🔴 Disconnected:", socket.id);
-
-    onlineUsers = onlineUsers.filter(
-      user => user.socketId !== socket.id
-    );
-
-    io.emit("onlineUsers", onlineUsers);
+    users = users.filter(u => u.id !== socket.id);
+    io.emit("online-users", users);
   });
 });
 
-// ================= Server Start =================
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("🚀 Server running on", PORT);
 });

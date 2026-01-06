@@ -1,79 +1,81 @@
 const socket = io();
+let name = "";
+let mediaRecorder;
+let audioChunks = [];
 
-const username = localStorage.getItem("username");
-if (!username) location.href = "join.html";
-
-socket.emit("join", username);
-
-const messages = document.getElementById("messages");
-const input = document.getElementById("msg");
-
-let typingDiv = null;
-
-/* helper */
-function addInfo(text) {
-  const div = document.createElement("div");
-  div.className = "info";
-  div.innerText = text;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+function join() {
+  name = document.getElementById("username").value;
+  if (!name) return;
+  socket.emit("join", name);
+  document.getElementById("login").style.display = "none";
+  document.getElementById("chat").style.display = "block";
 }
 
-function addMessage(text, cls) {
-  const div = document.createElement("div");
-  div.className = cls;
-  div.innerText = text;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
+const msgInput = document.getElementById("msg");
 
-/* SEND */
-function sendMessage() {
-  const msg = input.value.trim();
+msgInput.addEventListener("keypress", (e) => {
+  socket.emit("typing", name);
+  if (e.key === "Enter") send();
+});
+
+msgInput.addEventListener("blur", () => {
+  socket.emit("stopTyping");
+});
+
+function send() {
+  const msg = msgInput.value;
   if (!msg) return;
-
-  addMessage("You: " + msg, "my-msg");
-  socket.emit("send-message", msg);
-
-  input.value = "";
-  socket.emit("stop-typing");
+  socket.emit("send-message", { name, msg });
+  msgInput.value = "";
+  socket.emit("stopTyping");
 }
 
-/* ENTER */
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    sendMessage();
-  } else {
-    socket.emit("typing");
-  }
+socket.on("receive-message", data => {
+  const div = document.createElement("div");
+  div.innerText = `${data.name}: ${data.msg}`;
+  document.getElementById("messages").appendChild(div);
 });
 
-/* RECEIVE */
-socket.on("receive-message", (data) => {
-  addMessage(data.user + ": " + data.message, "other-msg");
+socket.on("typing", (n) => {
+  document.getElementById("typing").innerText = n + " typing...";
 });
 
-/* INFO (online / offline) */
-socket.on("info", (text) => {
-  addInfo(text);
+socket.on("stopTyping", () => {
+  document.getElementById("typing").innerText = "";
 });
 
-/* TYPING TEXT (UI SAME, info style) */
-socket.on("typing", (user) => {
-  if (typingDiv) return;
-
-  typingDiv = document.createElement("div");
-  typingDiv.className = "info";
-  typingDiv.innerText = `${user} is typing...`;
-
-  messages.appendChild(typingDiv);
-  messages.scrollTop = messages.scrollHeight;
+socket.on("online-users", users => {
+  document.getElementById("users").innerText =
+    "Online: " + users.map(u => u.name).join(", ");
 });
 
-socket.on("stop-typing", () => {
-  if (typingDiv) {
-    typingDiv.remove();
-    typingDiv = null;
-  }
+// ===== voice message =====
+function recordVoice() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: "audio/webm" });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        socket.emit("send-voice", { name, audio: reader.result });
+      };
+      reader.readAsDataURL(blob);
+    };
+
+    setTimeout(() => mediaRecorder.stop(), 3000);
+  });
+}
+
+socket.on("receive-voice", data => {
+  const audio = document.createElement("audio");
+  audio.controls = true;
+  audio.src = data.audio;
+  document.getElementById("messages").appendChild(audio);
 });

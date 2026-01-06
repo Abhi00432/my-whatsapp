@@ -1,52 +1,8 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-
-.join {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #075e54;
-}
-
-.join-box {
-  background: #fff;
-  padding: 30px;
-  width: 320px;
-  border-radius: 12px;
-  text-align: center;
-}
-
-.join-box img {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  border: 3px solid #25d366;
-  margin-bottom: 20px;
-}
-
-#dpInput {
-  display: none;
-}
-
-.join-box input[type="text"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.join-box button {
-  width: 100%;
-  padding: 10px;
-  background: #25d366;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+body { font-family: Arial; background:#ece5dd; }
+.chat { display:none; }
+.messages { height:300px; overflow:auto; background:#fff; padding:10px; }
+.controls { display:flex; gap:5px; }
+input { flex:1; padding:8px; }
+button { padding:8px; }
+.users { font-size:12px; margin-bottom:5px; }
+#typing { font-size:12px; color:green; }

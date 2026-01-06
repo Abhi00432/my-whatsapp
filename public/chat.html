@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>My WhatsApp</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="login" id="login">
+    <input id="username" placeholder="Enter your name">
+    <button onclick="join()">Join</button>
+  </div>
+
+  <div class="chat" id="chat">
+    <div class="users" id="users"></div>
+    <div class="messages" id="messages"></div>
+    <div id="typing"></div>
+
+    <div class="controls">
+      <input id="msg" placeholder="Type message">
+      <button onclick="send()">Send</button>
+      <button onclick="recordVoice()">🎤</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="chat.js"></script>
+</body>
+
+</html>
