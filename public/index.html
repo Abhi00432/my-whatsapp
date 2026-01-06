@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Join</title>
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#075e54">
-
+  <meta charset="UTF-8">
+  <title>Private Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="center">
+<body>
 
-<div class="card">
-  <h2>WhatsApp Clone</h2>
+<div id="login" class="login">
+  <h3>Join Chat</h3>
   <input id="name" placeholder="Your name">
+  <input type="file" id="dp" accept="image/*">
   <button onclick="join()">Join</button>
 </div>
 
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
+<div id="chat" class="chat">
+  <div class="sidebar">
+    <h4>Online</h4>
+    <div id="users"></div>
+  </div>
 
-  function join() {
-    const name = document.getElementById("name").value;
-    if (!name) return alert("Enter name");
-    location.href = "chat.html?name=" + encodeURIComponent(name);
-  }
-</script>
+  <div class="main">
+    <div id="header"></div>
+    <div id="messages"></div>
+    <div id="typing"></div>
 
+    <input id="msg" placeholder="Type message">
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="chat.js"></script>
 </body>
 </html>

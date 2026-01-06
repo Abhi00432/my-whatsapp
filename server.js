@@ -5,66 +5,54 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// ===== static files =====
+// static files
 app.use(express.static(path.join(__dirname, "public")));
 
-// ===== root =====
+// root
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "chat.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ===== online users =====
-let users = [];
+// users memory
+// socketId : { name, dp }
+let users = {};
 
-// ===== socket =====
 io.on("connection", (socket) => {
   console.log("🟢 connected:", socket.id);
 
-  socket.on("join", (name) => {
-    users = users.filter(u => u.id !== socket.id);
-    users.push({ id: socket.id, name });
+  // join with dp
+  socket.on("join", (data) => {
+    users[socket.id] = {
+      name: data.name,
+      dp: data.dp // base64 image
+    };
     io.emit("online-users", users);
   });
 
-  socket.on("typing", (name) => {
-    socket.broadcast.emit("typing", name);
-  });
-
-  socket.on("stopTyping", () => {
-    socket.broadcast.emit("stopTyping");
-  });
-
-  socket.on("send-message", (data) => {
-    io.emit("receive-message", data);
-  });
-
-  socket.on("send-voice", (data) => {
-    io.emit("receive-voice", data);
-  });
-
-  // ===== voice call signaling =====
-  socket.on("call-user", data => {
-    io.to(data.to).emit("incoming-call", {
+  // private message
+  socket.on("private-message", (data) => {
+    io.to(data.to).emit("receive-message", {
       from: socket.id,
-      name: data.name
+      name: users[socket.id].name,
+      msg: data.msg
     });
   });
 
-  socket.on("accept-call", data => {
-    io.to(data.to).emit("call-accepted", data);
+  // typing
+  socket.on("typing", (to) => {
+    io.to(to).emit("typing", users[socket.id].name);
   });
 
-  socket.on("ice-candidate", data => {
-    io.to(data.to).emit("ice-candidate", data);
+  socket.on("stopTyping", (to) => {
+    io.to(to).emit("stopTyping");
   });
 
   socket.on("disconnect", () => {
-    users = users.filter(u => u.id !== socket.id);
+    delete users[socket.id];
     io.emit("online-users", users);
   });
 });

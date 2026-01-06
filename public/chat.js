@@ -1,81 +1,90 @@
 const socket = io();
-let name = "";
-let mediaRecorder;
-let audioChunks = [];
 
-function join() {
-  name = document.getElementById("username").value;
-  if (!name) return;
-  socket.emit("join", name);
-  document.getElementById("login").style.display = "none";
-  document.getElementById("chat").style.display = "block";
-}
+let myId = "";
+let selectedUser = "";
+let selectedName = "";
 
-const msgInput = document.getElementById("msg");
-
-msgInput.addEventListener("keypress", (e) => {
-  socket.emit("typing", name);
-  if (e.key === "Enter") send();
+socket.on("connect", () => {
+  myId = socket.id;
 });
 
-msgInput.addEventListener("blur", () => {
-  socket.emit("stopTyping");
+function join() {
+  const name = document.getElementById("name").value;
+  const file = document.getElementById("dp").files[0];
+  if (!name || !file) return alert("Name & DP required");
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    socket.emit("join", { name, dp: reader.result });
+    document.getElementById("login").style.display = "none";
+    document.getElementById("chat").style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+}
+
+// online users
+socket.on("online-users", (users) => {
+  const box = document.getElementById("users");
+  box.innerHTML = "";
+
+  for (let id in users) {
+    if (id === myId) continue;
+
+    const div = document.createElement("div");
+    div.className = "user";
+    div.innerHTML = `
+      <img src="${users[id].dp}">
+      <span>${users[id].name}</span>
+    `;
+    div.onclick = () => {
+      selectedUser = id;
+      selectedName = users[id].name;
+      document.getElementById("header").innerText =
+        "Chat with " + selectedName;
+      document.getElementById("messages").innerHTML = "";
+    };
+    box.appendChild(div);
+  }
+});
+
+// send message
+const msgInput = document.getElementById("msg");
+
+msgInput.addEventListener("keydown", (e) => {
+  if (!selectedUser) return;
+  socket.emit("typing", selectedUser);
+  if (e.key === "Enter") {
+    send();
+  }
 });
 
 function send() {
-  const msg = msgInput.value;
-  if (!msg) return;
-  socket.emit("send-message", { name, msg });
+  if (!msgInput.value || !selectedUser) return;
+  socket.emit("private-message", {
+    to: selectedUser,
+    msg: msgInput.value
+  });
+
+  addMessage("You", msgInput.value);
   msgInput.value = "";
-  socket.emit("stopTyping");
+  socket.emit("stopTyping", selectedUser);
 }
 
-socket.on("receive-message", data => {
-  const div = document.createElement("div");
-  div.innerText = `${data.name}: ${data.msg}`;
-  document.getElementById("messages").appendChild(div);
+socket.on("receive-message", (data) => {
+  addMessage(data.name, data.msg);
 });
 
-socket.on("typing", (n) => {
-  document.getElementById("typing").innerText = n + " typing...";
+function addMessage(name, msg) {
+  const div = document.createElement("div");
+  div.innerText = name + ": " + msg;
+  document.getElementById("messages").appendChild(div);
+}
+
+// typing
+socket.on("typing", (name) => {
+  document.getElementById("typing").innerText = name + " typing...";
 });
 
 socket.on("stopTyping", () => {
   document.getElementById("typing").innerText = "";
-});
-
-socket.on("online-users", users => {
-  document.getElementById("users").innerText =
-    "Online: " + users.map(u => u.name).join(", ");
-});
-
-// ===== voice message =====
-function recordVoice() {
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.start();
-    audioChunks = [];
-
-    mediaRecorder.ondataavailable = e => {
-      audioChunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(audioChunks, { type: "audio/webm" });
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        socket.emit("send-voice", { name, audio: reader.result });
-      };
-      reader.readAsDataURL(blob);
-    };
-
-    setTimeout(() => mediaRecorder.stop(), 3000);
-  });
-}
-
-socket.on("receive-voice", data => {
-  const audio = document.createElement("audio");
-  audio.controls = true;
-  audio.src = data.audio;
-  document.getElementById("messages").appendChild(audio);
 });
