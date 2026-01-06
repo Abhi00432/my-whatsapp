@@ -3,6 +3,7 @@ const http = require("http");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -12,14 +13,22 @@ const io = new Server(server);
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
+/* ensure uploads folder exists (Render safety) */
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
 /* MongoDB */
 mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB connected"))
-  .catch(e => console.log(e));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch(err => {
+    console.error("Mongo error:", err);
+    process.exit(1);
+  });
 
-/* User model (deviceId UNIQUE) */
+/* Model */
 const User = mongoose.model("User", {
-  deviceId: { type: String, unique: true },
+  deviceId: String,
   name: String,
   dp: String,
   socketId: String
@@ -28,8 +37,9 @@ const User = mongoose.model("User", {
 /* Multer */
 const storage = multer.diskStorage({
   destination: "uploads/",
-  filename: (r, f, cb) =>
-    cb(null, Date.now() + path.extname(f.originalname))
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
 });
 const upload = multer({ storage });
 
@@ -37,16 +47,20 @@ const upload = multer({ storage });
 app.get("/", (req, res) => res.sendFile(__dirname + "/join.html"));
 app.get("/chat", (req, res) => res.sendFile(__dirname + "/chat.html"));
 
-/* JOIN = CREATE OR UPDATE (NO DUPLICATE EVER) */
+/* Join (CRASH SAFE) */
 app.post("/join", upload.single("dp"), async (req, res) => {
   try {
     const { name, deviceId } = req.body;
+
+    if (!name || !deviceId) {
+      return res.status(400).json({ error: "Missing data" });
+    }
 
     let user = await User.findOne({ deviceId });
 
     const dpPath = req.file
       ? "/uploads/" + req.file.filename
-      : "/uploads/default.png"; // fallback
+      : "/uploads/default.png";
 
     if (user) {
       user.name = name;
@@ -62,20 +76,20 @@ app.post("/join", upload.single("dp"), async (req, res) => {
 
     res.json(user);
   } catch (err) {
-    console.error(err);
+    console.error("Join error:", err);
     res.status(500).json({ error: "Join failed" });
   }
 });
 
-/* USERS */
+/* Users */
 app.get("/users", async (req, res) => {
   res.json(await User.find());
 });
 
-/* SOCKET */
+/* Socket */
 io.on("connection", socket => {
-  socket.on("register", async userId => {
-    await User.findByIdAndUpdate(userId, { socketId: socket.id });
+  socket.on("register", async id => {
+    await User.findByIdAndUpdate(id, { socketId: socket.id });
   });
 
   socket.on("msg", async data => {
@@ -86,8 +100,8 @@ io.on("connection", socket => {
   });
 });
 
+/* PORT (Render requirement) */
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
+  console.log("🚀 Server running on port", PORT);
 });
