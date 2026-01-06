@@ -13,8 +13,9 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 /* MongoDB */
-mongoose.connect("mongodb://127.0.0.1:27017/whatsapp")
-  .then(() => console.log("✅ MongoDB connected"));
+mongoose.connect(process.env.MONGO_URL)
+  .then(()=>console.log("MongoDB connected"))
+  .catch(e=>console.log(e));
 
 /* User model (deviceId UNIQUE) */
 const User = mongoose.model("User", {
@@ -76,7 +77,8 @@ io.on("connection", socket => {
   });
 });
 
-server.listen(3000, "0.0.0.0", () => {
-  console.log("Server running on all IPs");
-});
+const PORT = process.env.PORT || 3000;
 
+server.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port", PORT);
+});
