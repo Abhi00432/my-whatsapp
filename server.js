@@ -5,68 +5,57 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  maxHttpBufferSize: 1e7
+  maxHttpBufferSize: 1e8
 });
 
 app.use(express.static("public"));
 
-/*
-  users = {
-    username: socket.id
-  }
-*/
-const users = {};
+const users = {}; // username -> socket.id
 
-io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
+io.on("connection", socket => {
 
-  // JOIN
   socket.on("join", ({ name }) => {
     users[name] = socket.id;
     io.emit("users-list", Object.keys(users));
   });
 
-  // PRIVATE TEXT
-  socket.on("private-msg", ({ to, from, msg }) => {
-    if (users[to]) {
-      io.to(users[to]).emit("private-msg", { from, msg });
-    }
+  // TEXT
+  socket.on("private-msg", d => {
+    users[d.to] && io.to(users[d.to]).emit("private-msg", d);
   });
 
-  // PRIVATE IMAGE
-  socket.on("private-image", ({ to, from, img }) => {
-    if (users[to]) {
-      io.to(users[to]).emit("private-image", { from, img });
-    }
+  // IMAGE
+  socket.on("private-image", d => {
+    users[d.to] && io.to(users[d.to]).emit("private-image", d);
   });
 
-  // PRIVATE VOICE
-  socket.on("private-voice", ({ to, from, audio }) => {
-    if (users[to]) {
-      io.to(users[to]).emit("private-voice", { from, audio });
-    }
+  // VOICE MESSAGE
+  socket.on("private-voice", d => {
+    users[d.to] && io.to(users[d.to]).emit("private-voice", d);
   });
 
-  // TYPING (ONLY EVENT, NO DOM)
-  socket.on("typing", ({ to, from }) => {
-    if (users[to]) {
-      io.to(users[to]).emit("typing", from);
-    }
+  // VOICE CALL SIGNALING
+  socket.on("call-offer", d => {
+    users[d.to] && io.to(users[d.to]).emit("call-offer", d);
+  });
+  socket.on("call-answer", d => {
+    users[d.to] && io.to(users[d.to]).emit("call-answer", d);
+  });
+  socket.on("call-ice", d => {
+    users[d.to] && io.to(users[d.to]).emit("call-ice", d);
+  });
+
+  // TYPING
+  socket.on("typing", d => {
+    users[d.to] && io.to(users[d.to]).emit("typing", d.from);
   });
 
   socket.on("disconnect", () => {
-    for (let name in users) {
-      if (users[name] === socket.id) {
-        delete users[name];
-        break;
-      }
+    for (let u in users) {
+      if (users[u] === socket.id) delete users[u];
     }
     io.emit("users-list", Object.keys(users));
-    console.log("Disconnected:", socket.id);
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log("Server running on", PORT);
-});
+server.listen(process.env.PORT || 3000);
