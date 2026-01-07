@@ -11,13 +11,14 @@ const io = new Server(server, {
 app.use(express.static("public"));
 
 /*
-users = {
-  username: socket.id
-}
+  users = {
+    username: socket.id
+  }
 */
 const users = {};
 
 io.on("connection", (socket) => {
+  console.log("Connected:", socket.id);
 
   // JOIN
   socket.on("join", ({ name }) => {
@@ -25,28 +26,28 @@ io.on("connection", (socket) => {
     io.emit("users-list", Object.keys(users));
   });
 
-  // PRIVATE MESSAGE
+  // PRIVATE TEXT
   socket.on("private-msg", ({ to, from, msg }) => {
     if (users[to]) {
       io.to(users[to]).emit("private-msg", { from, msg });
     }
   });
 
-  // IMAGE
+  // PRIVATE IMAGE
   socket.on("private-image", ({ to, from, img }) => {
     if (users[to]) {
       io.to(users[to]).emit("private-image", { from, img });
     }
   });
 
-  // VOICE
+  // PRIVATE VOICE
   socket.on("private-voice", ({ to, from, audio }) => {
     if (users[to]) {
       io.to(users[to]).emit("private-voice", { from, audio });
     }
   });
 
-  // TYPING
+  // TYPING (ONLY EVENT, NO DOM)
   socket.on("typing", ({ to, from }) => {
     if (users[to]) {
       io.to(users[to]).emit("typing", from);
@@ -54,19 +55,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    for (let u in users) {
-      if (users[u] === socket.id) {
-        delete users[u];
+    for (let name in users) {
+      if (users[name] === socket.id) {
+        delete users[name];
         break;
       }
     }
     io.emit("users-list", Object.keys(users));
+    console.log("Disconnected:", socket.id);
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log("Server running"));
-
-  typingDiv.innerText = `${u} is typing...`;  setTimeout(() => {
-    typingEl.innerText = "";
-  }, 2000); 
+server.listen(PORT, () => {
+  console.log("Server running on", PORT);
+});
