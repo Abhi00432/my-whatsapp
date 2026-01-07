@@ -1,49 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Join Chat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Join Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="join-body">
+<body>
 
-<div class="join-card">
-  <h2>Join Chat</h2>
+<div class="join-container">
 
-  <img id="preview" src="https://i.imgur.com/6VBx3io.png" class="dp-preview">
+  <div class="join-card">
+    <h2>Join Chat</h2>
 
-  <input type="text" id="username" placeholder="Your name" required>
+    <!-- DP PREVIEW -->
+    <img
+      id="previewDp"
+      class="preview-dp"
+      src="https://i.imgur.com/6VBx3io.png"
+      alt="Profile Photo"
+    >
 
-  <label class="file-btn">
-    Choose Profile Photo
-    <input type="file" id="dp" accept="image/*">
-  </label>
+    <!-- NAME -->
+    <input
+      type="text"
+      id="username"
+      placeholder="Enter your name"
+      autocomplete="off"
+    >
 
-  <button onclick="joinChat()">Join</button>
+    <!-- FILE INPUT -->
+    <label class="file-btn">
+      Choose Profile Photo
+      <input type="file" id="dpInput" accept="image/*" hidden>
+    </label>
+
+    <!-- JOIN -->
+    <button onclick="joinChat()">Join</button>
+  </div>
+
 </div>
 
 <script>
+const dpInput = document.getElementById("dpInput");
+const preview = document.getElementById("previewDp");
+const usernameInput = document.getElementById("username");
+
+/* ===== DP PREVIEW (CIRCLE FIX) ===== */
+dpInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    preview.src = reader.result;
+    localStorage.setItem("dp", reader.result);
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ===== JOIN ===== */
 function joinChat() {
-  const name = document.getElementById("username").value;
+  const name = usernameInput.value.trim();
   if (!name) {
-    alert("Name required");
+    alert("Please enter your name");
     return;
   }
-  localStorage.setItem("username", name);
-  window.location.href = "chat.html";
-}
 
-document.getElementById("dp").addEventListener("change", function(e){
-  const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = () => {
-      document.getElementById("preview").src = reader.result;
-      localStorage.setItem("dp", reader.result);
-    };
-    reader.readAsDataURL(file);
+  localStorage.setItem("username", name);
+
+  // if dp not selected, clear old dp
+  if (!localStorage.getItem("dp")) {
+    localStorage.removeItem("dp");
   }
-});
+
+  window.location.href = "/chats.html";
+}
 </script>
 
 </body>

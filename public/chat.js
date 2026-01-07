@@ -1,34 +1,31 @@
-// ================= SOCKET =================
 const socket = io();
 
-// ================= USER DATA =================
+// ===== USER DATA =====
 const name = localStorage.getItem("username");
-const dp = localStorage.getItem("dp");
-const params = new URLSearchParams(location.search);
-const to = params.get("user");
+const myDp = localStorage.getItem("dp");
+const to = new URLSearchParams(location.search).get("user");
 
-if (!name || !to) {
-  location.href = "/chats.html";
-}
+if (!name || !to) location.href = "/chats.html";
 
-// ================= JOIN =================
-socket.emit("join", { name, dp });
+// ===== HEADER =====
+document.getElementById("chatWith").innerText = to;
+document.getElementById("headerDp").src =
+  myDp || "https://i.imgur.com/6VBx3io.png";
 
-// ================= DOM =================
+// ===== JOIN (SEND DP TO SERVER) =====
+socket.emit("join", { name, dp: myDp });
+
+// ===== DOM =====
 const messages = document.getElementById("messages");
 const msgInput = document.getElementById("msg");
 const photoInput = document.getElementById("photo");
-const chatWith = document.getElementById("chatWith");
-const typingEl = document.getElementById("typing");
 
-chatWith.innerText = to;
-
-// ================= TEXT SEND =================
+/* ================= TEXT ================= */
 function sendMsg() {
   const msg = msgInput.value.trim();
   if (!msg) return;
 
-  addMsg(name, msg, "me", dp);
+  addMsg("You", msg, "me", myDp);
 
   socket.emit("private-msg", {
     to,
@@ -39,148 +36,129 @@ function sendMsg() {
   msgInput.value = "";
 }
 
-// ENTER PRESS SEND
-msgInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
+// Enter press send
+msgInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
     e.preventDefault();
     sendMsg();
-  } else {
-    socket.emit("typing", { to, from: name });
   }
 });
 
-// RECEIVE TEXT
-socket.on("private-msg", (d) => {
+// Receive text
+socket.on("private-msg", d => {
   addMsg(d.from, d.msg, "other", d.dp);
 });
 
-// ================= IMAGE SEND =================
-photoInput.addEventListener("change", (e) => {
+/* ================= IMAGE ================= */
+photoInput.onchange = e => {
   const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
   reader.onload = () => {
+    addImage("You", reader.result, "me", myDp);
+
     socket.emit("private-image", {
       to,
       from: name,
       img: reader.result
     });
-
-    addImage(name, reader.result, "me", dp);
   };
   reader.readAsDataURL(file);
-});
+};
 
-// RECEIVE IMAGE
-socket.on("private-image", (d) => {
+socket.on("private-image", d => {
   addImage(d.from, d.img, "other", d.dp);
 });
 
-// ================= VOICE MESSAGE (FIXED) =================
-let mediaRecorder;
-let audioChunks = [];
-let recording = false;
+/* ================= VOICE (FIXED 0:00) ================= */
+let recorder, chunks = [], recording = false;
 
-// mic permission
 navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-  mediaRecorder = new MediaRecorder(stream);
+  recorder = new MediaRecorder(stream);
 
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data.size > 0) audioChunks.push(e.data);
+  recorder.ondataavailable = e => {
+    if (e.data.size > 0) chunks.push(e.data);
   };
 
-  mediaRecorder.onstop = () => {
-    if (audioChunks.length === 0) return;
+  recorder.onstop = () => {
+    if (chunks.length === 0) return;
 
-    const blob = new Blob(audioChunks, { type: "audio/webm" });
-    audioChunks = [];
+    const blob = new Blob(chunks, { type: "audio/webm" });
+    chunks = [];
 
-    // 🔥 FIX: ensure duration > 0
-    if (blob.size < 1000) return;
+    if (blob.size < 1000) return; // prevent 0:00
 
     const reader = new FileReader();
     reader.onload = () => {
+      addVoice("You", reader.result, "me", myDp);
+
       socket.emit("private-voice", {
         to,
         from: name,
         audio: reader.result
       });
-
-      addVoice(name, reader.result, "me", dp);
     };
     reader.readAsDataURL(blob);
   };
 });
 
-// press & hold 🎤
 function startVoice() {
-  if (!mediaRecorder || recording) return;
+  if (!recorder || recording) return;
   recording = true;
-  audioChunks = [];
-  mediaRecorder.start();
+  chunks = [];
+  recorder.start();
 }
 
 function stopVoice() {
-  if (!mediaRecorder || !recording) return;
+  if (!recorder || !recording) return;
   recording = false;
-  mediaRecorder.stop();
+  recorder.stop();
 }
 
-// RECEIVE VOICE
-socket.on("private-voice", (d) => {
+socket.on("private-voice", d => {
   addVoice(d.from, d.audio, "other", d.dp);
 });
 
-// ================= TYPING =================
-socket.on("typing", (u) => {
-  typingEl.innerText = `${u} typing...`;
-  setTimeout(() => typingEl.innerText = "", 1000);
-});
-
-// ================= UI HELPERS =================
-function addMsg(user, msg, type, dpImg) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerHTML = `
-    <img class="dp" src="${dpImg || 'https://i.imgur.com/6VBx3io.png'}">
+/* ================= UI HELPERS ================= */
+function addMsg(user, msg, type, dp) {
+  const d = document.createElement("div");
+  d.className = "msg " + type;
+  d.innerHTML = `
+    <img class="dp" src="${dp || 'https://i.imgur.com/6VBx3io.png'}">
     <div>
       <b>${user}</b><br>${msg}
     </div>
   `;
-  messages.appendChild(div);
+  messages.appendChild(d);
   messages.scrollTop = messages.scrollHeight;
 }
 
-function addImage(user, img, type, dpImg) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerHTML = `
-    <img class="dp" src="${dpImg || 'https://i.imgur.com/6VBx3io.png'}">
+function addImage(user, img, type, dp) {
+  const d = document.createElement("div");
+  d.className = "msg " + type;
+  d.innerHTML = `
+    <img class="dp" src="${dp || 'https://i.imgur.com/6VBx3io.png'}">
     <div>
       <b>${user}</b><br>
-      <img src="${img}" style="max-width:180px;border-radius:8px">
+      <img src="${img}" class="img-msg">
     </div>
   `;
-  messages.appendChild(div);
+  messages.appendChild(d);
   messages.scrollTop = messages.scrollHeight;
 }
 
-function addVoice(user, audio, type, dpImg) {
-  const div = document.createElement("div");
-  div.className = "msg " + type;
-  div.innerHTML = `
-    <img class="dp" src="${dpImg || 'https://i.imgur.com/6VBx3io.png'}">
+function addVoice(user, audio, type, dp) {
+  const d = document.createElement("div");
+  d.className = "msg " + type;
+  d.innerHTML = `
+    <img class="dp" src="${dp || 'https://i.imgur.com/6VBx3io.png'}">
     <div>
       <b>${user}</b><br>
       <audio controls src="${audio}"></audio>
     </div>
   `;
-  messages.appendChild(div);
+  messages.appendChild(d);
   messages.scrollTop = messages.scrollHeight;
 }
-// ================= PRIVATE CALLING (BASIC) =================
-let pc; // RTCPeerConnection
-const config = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-};      
+  

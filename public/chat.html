@@ -2,26 +2,34 @@
 <html>
 
 <head>
+  <title>Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
   <div class="chat">
+
+    <!-- HEADER -->
     <div class="chat-header">
+      <img id="headerDp" class="header-dp">
       <span id="chatWith"></span>
-      <button onclick="startCall()">📞</button>
     </div>
 
+    <!-- MESSAGES -->
     <div id="messages" class="messages"></div>
 
+    <!-- INPUT -->
     <div class="input">
       <input type="file" id="photo" hidden>
       <button onclick="photo.click()">📎</button>
-      <input id="msg" placeholder="Message">
+
+      <input id="msg" placeholder="Type a message">
+
       <button onmousedown="startVoice()" onmouseup="stopVoice()">🎤</button>
       <button onclick="sendMsg()">➤</button>
     </div>
+
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
