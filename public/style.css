@@ -1,17 +1,116 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #efeae2;
 }
 
-/* CHAT */
+/* ================= JOIN PAGE ================= */
+.join-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.join-card {
+  background: #fff;
+  padding: 25px;
+  width: 280px;
+  text-align: center;
+  border-radius: 10px;
+}
+
+.preview-dp {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.file-btn {
+  display: block;
+  background: #ddd;
+  padding: 8px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+/* ================= CHATS PAGE ================= */
+.chats-page {
+  height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 320px;
+  background: #ffffff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  background: #075e54;
+  color: #fff;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-dp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+/* USERS LIST */
+.users-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  gap: 10px;
+}
+
+.user-item:hover {
+  background: #f5f5f5;
+}
+
+/* 🔥 FIXED USER DP (ROUND + SMALL) */
+.user-item img,
+.user-dp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 15px;
+  color: #333;
+}
+
+/* ================= CHAT PAGE ================= */
 .chat {
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* HEADER */
 .chat-header {
   background: #075e54;
   color: white;
@@ -58,7 +157,7 @@ body {
   background: #dcf8c6;
 }
 
-/* INPUT */
+/* INPUT BAR */
 .input-bar {
   display: flex;
   padding: 10px;
@@ -68,4 +167,9 @@ body {
 .input-bar input {
   flex: 1;
   padding: 8px;
+}
+
+.input-bar button {
+  margin-left: 6px;
+  cursor: pointer;
 }
