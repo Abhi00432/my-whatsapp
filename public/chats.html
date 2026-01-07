@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h3>Your Chats</h3>
+<div id="users"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const name = localStorage.getItem("username");
+if (!name) location.href="/";
+
+socket.emit("join", { name });
+
+socket.on("users-list", users => {
+  const box = document.getElementById("users");
+  box.innerHTML = "";
+  users.filter(u => u !== name).forEach(u => {
+    const div = document.createElement("div");
+    div.innerText = u;
+    div.className = "user";
+    div.onclick = () => {
+      window.location.href = `chat.html?user=${encodeURIComponent(u)}`;
+    };
+    box.appendChild(div);
+  });
+});
+</script>
+
+</body>
+</html>
