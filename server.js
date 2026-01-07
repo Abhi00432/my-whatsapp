@@ -10,51 +10,81 @@ const io = new Server(server, {
 
 app.use(express.static("public"));
 
-const users = {}; // username -> socket.id
+/*
+users = {
+  username: {
+    socketId,
+    dp
+  }
+}
+*/
+const users = {};
 
 io.on("connection", socket => {
 
-  socket.on("join", ({ name }) => {
-    users[name] = socket.id;
-    io.emit("users-list", Object.keys(users));
+  // JOIN WITH DP
+  socket.on("join", ({ name, dp }) => {
+    users[name] = {
+      socketId: socket.id,
+      dp: dp || ""
+    };
+
+    // send users list with dp
+    const list = Object.keys(users).map(u => ({
+      name: u,
+      dp: users[u].dp
+    }));
+
+    io.emit("users-list", list);
   });
 
-  // TEXT
+  // PRIVATE TEXT
   socket.on("private-msg", d => {
-    users[d.to] && io.to(users[d.to]).emit("private-msg", d);
+    if (users[d.to]) {
+      io.to(users[d.to].socketId).emit("private-msg", {
+        from: d.from,
+        msg: d.msg,
+        dp: users[d.from]?.dp || ""
+      });
+    }
   });
 
-  // IMAGE
+  // PRIVATE IMAGE
   socket.on("private-image", d => {
-    users[d.to] && io.to(users[d.to]).emit("private-image", d);
+    if (users[d.to]) {
+      io.to(users[d.to].socketId).emit("private-image", {
+        from: d.from,
+        img: d.img,
+        dp: users[d.from]?.dp || ""
+      });
+    }
   });
 
-  // VOICE MESSAGE
+  // PRIVATE VOICE
   socket.on("private-voice", d => {
-    users[d.to] && io.to(users[d.to]).emit("private-voice", d);
-  });
-
-  // VOICE CALL SIGNALING
-  socket.on("call-offer", d => {
-    users[d.to] && io.to(users[d.to]).emit("call-offer", d);
-  });
-  socket.on("call-answer", d => {
-    users[d.to] && io.to(users[d.to]).emit("call-answer", d);
-  });
-  socket.on("call-ice", d => {
-    users[d.to] && io.to(users[d.to]).emit("call-ice", d);
-  });
-
-  // TYPING
-  socket.on("typing", d => {
-    users[d.to] && io.to(users[d.to]).emit("typing", d.from);
+    if (users[d.to]) {
+      io.to(users[d.to].socketId).emit("private-voice", {
+        from: d.from,
+        audio: d.audio,
+        dp: users[d.from]?.dp || ""
+      });
+    }
   });
 
   socket.on("disconnect", () => {
     for (let u in users) {
-      if (users[u] === socket.id) delete users[u];
+      if (users[u].socketId === socket.id) {
+        delete users[u];
+        break;
+      }
     }
-    io.emit("users-list", Object.keys(users));
+
+    const list = Object.keys(users).map(u => ({
+      name: u,
+      dp: users[u].dp
+    }));
+
+    io.emit("users-list", list);
   });
 });
 

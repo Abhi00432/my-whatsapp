@@ -83,3 +83,11 @@ body {
   flex: 1;
   padding: 8px
 }
+.dp {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+

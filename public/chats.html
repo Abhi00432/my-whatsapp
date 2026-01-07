@@ -28,16 +28,23 @@
 
         socket.emit("join", { name });
 
-        socket.on("users-list", list => {
-            users.innerHTML = "";
-            list.filter(u => u !== name).forEach(u => {
-                const d = document.createElement("div");
-                d.className = "user";
-                d.innerHTML = `<img src="https://i.imgur.com/6VBx3io.png">${u}`;
-                d.onclick = () => location.href = `chat.html?user=${u}`;
-                users.appendChild(d);
-            });
-        });
+     socket.on("users-list", list => {
+  users.innerHTML = "";
+
+  list.filter(u => u.name !== name).forEach(u => {
+    const d = document.createElement("div");
+    d.className = "user";
+    d.innerHTML = `
+      <img src="${u.dp || 'https://i.imgur.com/6VBx3io.png'}">
+      <span>${u.name}</span>
+    `;
+    d.onclick = () =>
+      location.href = `chat.html?user=${encodeURIComponent(u.name)}`;
+
+    users.appendChild(d);
+  });
+});
+
     </script>
 </body>
 
