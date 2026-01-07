@@ -1,18 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <title>Chats</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <img id="mydp">
-            <span id="myname"></span>
+    <div class="chats-page">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+
+            <!-- HEADER -->
+            <div class="sidebar-header">
+                <img id="mydp" class="sidebar-dp">
+                <span id="myname"></span>
+            </div>
+
+            <!-- USERS LIST -->
+            <div id="users" class="users-list"></div>
+
         </div>
-        <div id="users"></div>
+
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -23,29 +36,34 @@
 
         if (!name) location.href = "/";
 
-        myname.innerText = name;
-        mydp.src = dp || "https://i.imgur.com/6VBx3io.png";
+        document.getElementById("myname").innerText = name;
+        document.getElementById("mydp").src =
+            dp || "https://i.imgur.com/6VBx3io.png";
 
-        socket.emit("join", { name });
+        socket.emit("join", { name, dp });
 
-     socket.on("users-list", list => {
-  users.innerHTML = "";
+        socket.on("users-list", list => {
+            const usersBox = document.getElementById("users");
+            usersBox.innerHTML = "";
 
-  list.filter(u => u.name !== name).forEach(u => {
-    const d = document.createElement("div");
-    d.className = "user";
-    d.innerHTML = `
-      <img src="${u.dp || 'https://i.imgur.com/6VBx3io.png'}">
-      <span>${u.name}</span>
-    `;
-    d.onclick = () =>
-      location.href = `chat.html?user=${encodeURIComponent(u.name)}`;
-
-    users.appendChild(d);
-  });
-});
-
+            list
+                .filter(u => u.name !== name)
+                .forEach(u => {
+                    const div = document.createElement("div");
+                    div.className = "user-item";
+                    div.innerHTML = `
+        <img src="${u.dp || 'https://i.imgur.com/6VBx3io.png'}" class="user-dp">
+        <span class="user-name">${u.name}</span>
+      `;
+                    div.onclick = () => {
+                        window.location.href =
+                            "chat.html?user=" + encodeURIComponent(u.name);
+                    };
+                    usersBox.appendChild(div);
+                });
+        });
     </script>
+
 </body>
 
 </html>

@@ -1,150 +1,75 @@
+/* RESET */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background: #efeae2;
 }
 
-/* CHAT */
-.chat {
+/* ===== CHATS PAGE ===== */
+.chats-page {
   height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 320px;
+  background: #ffffff;
+  border-right: 1px solid #ddd;
   display: flex;
   flex-direction: column;
 }
 
-/* HEADER */
-.chat-header {
+/* SIDEBAR HEADER */
+.sidebar-header {
   background: #075e54;
   color: #fff;
-  padding: 10px;
+  padding: 12px;
   display: flex;
   align-items: center;
 }
 
-.header-dp {
-  width: 36px;
-  height: 36px;
+.sidebar-dp {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
   margin-right: 10px;
 }
 
-/* MESSAGES */
-.messages {
+/* USERS LIST */
+.users-list {
   flex: 1;
-  padding: 10px;
   overflow-y: auto;
 }
 
-.msg {
+/* USER ITEM */
+.user-item {
   display: flex;
-  max-width: 70%;
-  margin-bottom: 10px;
-}
-
-.msg.me {
-  margin-left: auto;
-  flex-direction: row-reverse;
-}
-
-.msg.other {
-  margin-right: auto;
-}
-
-.dp {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 6px;
-}
-
-.msg>div {
-  background: #fff;
-  padding: 8px;
-  border-radius: 8px;
-}
-
-.msg.me>div {
-  background: #dcf8c6;
-}
-
-/* IMAGE */
-.chat-img {
-  max-width: 180px;
-  border-radius: 8px;
-  margin-top: 5px;
-}
-
-/* INPUT */
-.input {
-  display: flex;
-  padding: 10px;
-  background: #f0f0f0;
-}
-
-.input input {
-  flex: 1;
-  padding: 8px;
-  margin: 0 5px;
-}
-
-.input button {
-  background: #075e54;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-/* ===== JOIN PAGE ===== */
-.join-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
   align-items: center;
-  background: #efeae2;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
 }
 
-.join-card {
-  background: #fff;
-  padding: 25px;
-  width: 300px;
-  border-radius: 10px;
-  text-align: center;
+.user-item:hover {
+  background: #f5f5f5;
 }
 
-.join-card h2 {
-  margin-bottom: 15px;
-}
-
-.preview-dp {
-  width: 90px;
-  height: 90px;
+.user-dp {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  margin-bottom: 12px;
+  /* 🔥 MOST IMPORTANT */
+  margin-right: 10px;
 }
 
-.join-card input[type="text"] {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.file-btn {
-  display: block;
-  background: #ddd;
-  padding: 8px;
-  cursor: pointer;
-  margin-bottom: 12px;
-}
-
-.join-card button {
-  width: 100%;
-  padding: 10px;
-  background: #25d366;
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-}       
+.user-name {
+  font-size: 15px;
+  color: #333;
+}   
