@@ -5,19 +5,22 @@ const dp = localStorage.getItem("dp");
 const params = new URLSearchParams(window.location.search);
 const to = params.get("user");
 
-if (!name || !to) location.href = "/chats.html";
+if (!name || !to) {
+  location.href = "/chats.html";
+}
 
-// HEADER
+// ===== HEADER =====
 document.getElementById("chatName").innerText = to;
 document.getElementById("headerDp").src =
   dp || "https://i.imgur.com/6VBx3io.png";
 
+// register user
 socket.emit("join", { name, dp });
 
 const messages = document.getElementById("messages");
 const msgInput = document.getElementById("msg");
 
-/* ===== SEND ===== */
+/* ========= SEND MESSAGE ========= */
 function sendMsg() {
   const msg = msgInput.value.trim();
   if (!msg) return;
@@ -25,15 +28,15 @@ function sendMsg() {
   addMsg("You", msg, "me");
 
   socket.emit("private-msg", {
-    to,
+    to: to,
     from: name,
-    msg
+    msg: msg
   });
 
   msgInput.value = "";
 }
 
-// ENTER SEND
+// Enter press send
 msgInput.addEventListener("keydown", e => {
   if (e.key === "Enter") {
     e.preventDefault();
@@ -41,17 +44,16 @@ msgInput.addEventListener("keydown", e => {
   }
 });
 
-/* ===== RECEIVE ===== */
+/* ========= RECEIVE MESSAGE ========= */
 socket.on("private-msg", d => {
   addMsg(d.from, d.msg, "other");
 });
 
-/* ===== UI ===== */
+/* ========= UI (NO DP HERE) ========= */
 function addMsg(user, msg, type) {
   const div = document.createElement("div");
   div.className = "msg " + type;
 
-  // 🔥 NO DP HERE
   div.innerHTML = `
     <div class="bubble">
       <b>${user}</b><br>${msg}
