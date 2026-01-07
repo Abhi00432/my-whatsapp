@@ -1,36 +1,44 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Chats</title>
-  <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h3>Your Chats</h3>
-<div id="users"></div>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <img id="mydp">
+            <span id="myname"></span>
+        </div>
+        <div id="users"></div>
+    </div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io();
-const name = localStorage.getItem("username");
-if (!name) location.href="/";
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const name = localStorage.getItem("username");
+        const dp = localStorage.getItem("dp");
 
-socket.emit("join", { name });
+        if (!name) location.href = "/";
 
-socket.on("users-list", users => {
-  const box = document.getElementById("users");
-  box.innerHTML = "";
-  users.filter(u => u !== name).forEach(u => {
-    const div = document.createElement("div");
-    div.innerText = u;
-    div.className = "user";
-    div.onclick = () => {
-      window.location.href = `chat.html?user=${encodeURIComponent(u)}`;
-    };
-    box.appendChild(div);
-  });
-});
-</script>
+        myname.innerText = name;
+        mydp.src = dp || "https://i.imgur.com/6VBx3io.png";
 
+        socket.emit("join", { name });
+
+        socket.on("users-list", list => {
+            users.innerHTML = "";
+            list.filter(u => u !== name).forEach(u => {
+                const d = document.createElement("div");
+                d.className = "user";
+                d.innerHTML = `<img src="https://i.imgur.com/6VBx3io.png">${u}`;
+                d.onclick = () => location.href = `chat.html?user=${u}`;
+                users.appendChild(d);
+            });
+        });
+    </script>
 </body>
+
 </html>

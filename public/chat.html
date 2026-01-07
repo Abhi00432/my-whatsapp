@@ -1,54 +1,31 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<h3 id="chatWith"></h3>
-<div id="messages"></div>
+  <div class="chat">
+    <div class="chat-header">
+      <span id="chatWith"></span>
+      <button onclick="startCall()">📞</button>
+    </div>
 
-<input id="msg" placeholder="Type message">
+    <div id="messages" class="messages"></div>
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io();
-const name = localStorage.getItem("username");
-const params = new URLSearchParams(window.location.search);
-const receiver = params.get("user");
+    <div class="input">
+      <input type="file" id="photo" hidden>
+      <button onclick="photo.click()">📎</button>
+      <input id="msg" placeholder="Message">
+      <button onmousedown="startVoice()" onmouseup="stopVoice()">🎤</button>
+      <button onclick="sendMsg()">➤</button>
+    </div>
+  </div>
 
-if (!name || !receiver) location.href="/chats.html";
-
-document.getElementById("chatWith").innerText = receiver;
-socket.emit("join", { name });
-
-const msgInput = document.getElementById("msg");
-
-msgInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") send();
-});
-
-function send(){
-  const msg = msgInput.value.trim();
-  if(!msg) return;
-
-  add(name, msg, "me");
-  socket.emit("private-msg", { to: receiver, from: name, msg });
-  msgInput.value="";
-}
-
-socket.on("private-msg", d => {
-  add(d.from, d.msg, "other");
-});
-
-function add(u,m,t){
-  const d=document.createElement("div");
-  d.className=t;
-  d.innerHTML=`<b>${u}</b><br>${m}`;
-  messages.appendChild(d);
-}
-</script>
-
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="chat.js"></script>
 </body>
+
 </html>

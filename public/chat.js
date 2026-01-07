@@ -1,156 +1,87 @@
 const socket = io();
-
 const name = localStorage.getItem("username");
-if (!name) location.href = "/";
+const dp = localStorage.getItem("dp");
+const to = new URLSearchParams(location.search).get("user");
+if (!name || !to) location.href = "/chats.html";
 
-let currentUser = null;
-
+chatWith.innerText = to;
 socket.emit("join", { name });
 
-const usersDiv = document.getElementById("users");
-const messages = document.getElementById("messages");
-const msgInput = document.getElementById("msg");
-const typingEl = document.getElementById("typing");
-const photoInput = document.getElementById("photo");
-
-/* ================= USERS LIST ================= */
-socket.on("users-list", (list) => {
-  usersDiv.innerHTML = "";
-  list.filter(u => u !== name).forEach(u => {
-    const div = document.createElement("div");
-    div.className = "user";
-    div.innerText = u;
-    div.onclick = () => {
-      currentUser = u;
-      messages.innerHTML = "";
-      document.getElementById("chatWith").innerText = u;
-    };
-    usersDiv.appendChild(div);
-  });
+msg.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMsg();
+  socket.emit("typing", { to, from: name });
 });
 
-/* ================= SEND TEXT ================= */
 function sendMsg() {
-  if (!currentUser) return alert("Select user first");
-
-  const msg = msgInput.value.trim();
-  if (msg === "") return;
-
-  addMsg(name, msg, "me");
-
-  socket.emit("private-msg", {
-    to: currentUser,
-    from: name,
-    msg
-  });
-
-  msgInput.value = "";
+  if (!msg.value.trim()) return;
+  add(name, msg.value, "me");
+  socket.emit("private-msg", { to, from: name, msg: msg.value });
+  msg.value = "";
 }
 
-/* ================= ENTER PRESS FIX ================= */
-msgInput.addEventListener("keydown", (e) => {
+socket.on("private-msg", d => add(d.from, d.msg, "other"));
 
-  // SHIFT + ENTER = new line
-  if (e.key === "Enter" && e.shiftKey) {
-    return;
-  }
-
-  // ENTER = send
-  if (e.key === "Enter") {
-    e.preventDefault();
-    sendMsg();
-  } else {
-    // typing indicator only on real typing
-    if (currentUser) {
-      socket.emit("typing", { to: currentUser, from: name });
-    }
-  }
-});
-
-/* ================= RECEIVE TEXT ================= */
-socket.on("private-msg", (data) => {
-  addMsg(data.from, data.msg, "other");
-});
-
-/* ================= IMAGE ================= */
-photoInput.onchange = (e) => {
-  if (!currentUser) return alert("Select user first");
-
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    socket.emit("private-image", {
-      to: currentUser,
-      from: name,
-      img: reader.result
-    });
-  };
-  reader.readAsDataURL(file);
+/* IMAGE */
+photo.onchange = e => {
+  const r = new FileReader();
+  r.onload = () => socket.emit("private-image", { to, from: name, img: r.result });
+  r.readAsDataURL(e.target.files[0]);
 };
-
-socket.on("private-image", (d) => {
-  const div = document.createElement("div");
-  div.className = "msg other";
-  div.innerHTML = `<b>${d.from}</b><br><img src="${d.img}" style="max-width:160px;border-radius:8px">`;
-  messages.appendChild(div);
+socket.on("private-image", d => {
+  const i = document.createElement("img");
+  i.src = d.img; i.style.maxWidth = "150px";
+  messages.appendChild(i);
 });
 
-/* ================= VOICE MESSAGE ================= */
-let recorder, chunks = [];
-
-navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-  recorder = new MediaRecorder(stream);
-
-  recorder.ondataavailable = e => chunks.push(e.data);
-
-  recorder.onstop = () => {
-    const blob = new Blob(chunks, { type: "audio/webm" });
+/* VOICE MESSAGE */
+let rec, chunks = [];
+navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
+  rec = new MediaRecorder(s);
+  rec.ondataavailable = e => chunks.push(e.data);
+  rec.onstop = () => {
+    const r = new FileReader();
+    r.onload = () => socket.emit("private-voice", { to, from: name, audio: r.result });
+    r.readAsDataURL(new Blob(chunks, { type: "audio/webm" }));
     chunks = [];
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      socket.emit("private-voice", {
-        to: currentUser,
-        from: name,
-        audio: reader.result
-      });
-    };
-    reader.readAsDataURL(blob);
   };
 });
-
-// Hold V to record voice
-document.addEventListener("keydown", e => {
-  if (e.key === "v" && recorder && recorder.state === "inactive") {
-    recorder.start();
-  }
-});
-document.addEventListener("keyup", e => {
-  if (e.key === "v" && recorder && recorder.state === "recording") {
-    recorder.stop();
-  }
-});
-
+function startVoice() { rec.start() }
+function stopVoice() { rec.stop() }
 socket.on("private-voice", d => {
-  const div = document.createElement("div");
-  div.className = "msg other";
-  div.innerHTML = `<b>${d.from}</b><br><audio controls src="${d.audio}"></audio>`;
-  messages.appendChild(div);
+  const a = document.createElement("audio");
+  a.controls = true; a.src = d.audio;
+  messages.appendChild(a);
 });
 
-/* ================= TYPING ================= */
-socket.on("typing", u => {
-  typingEl.innerText = u + " typing...";
-  setTimeout(() => typingEl.innerText = "", 1000);
+/* VOICE CALL (basic) */
+let pc;
+function startCall() {
+  pc = new RTCPeerConnection();
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
+    s.getTracks().forEach(t => pc.addTrack(t, s));
+  });
+  pc.onicecandidate = e => {
+    e.candidate && socket.emit("call-ice", { to, from: name, candidate: e.candidate });
+  };
+  pc.createOffer().then(o => {
+    pc.setLocalDescription(o);
+    socket.emit("call-offer", { to, from: name, offer: o });
+  });
+}
+socket.on("call-offer", d => {
+  pc = new RTCPeerConnection();
+  pc.setRemoteDescription(d.offer);
+  pc.createAnswer().then(a => {
+    pc.setLocalDescription(a);
+    socket.emit("call-answer", { to: d.from, answer: a });
+  });
 });
+socket.on("call-answer", d => pc.setRemoteDescription(d.answer));
+socket.on("call-ice", d => pc.addIceCandidate(d.candidate));
 
-/* ================= UI HELPER ================= */
-function addMsg(user, msg, type) {
+function add(u, m, t) {
   const d = document.createElement("div");
-  d.className = "msg " + type;
-  d.innerHTML = `<b>${user}</b><br>${msg}`;
+  d.className = "msg " + t;
+  d.innerHTML = `<b>${u}</b><br>${m}`;
   messages.appendChild(d);
-  messages.scrollTop = messages.scrollHeight;
 }
