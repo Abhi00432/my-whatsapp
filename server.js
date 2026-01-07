@@ -5,58 +5,68 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  maxHttpBufferSize: 1e7 // images / audio allow
+  maxHttpBufferSize: 1e7
 });
 
 app.use(express.static("public"));
 
-let users = {}; // socket.id -> user
+/*
+users = {
+  username: socket.id
+}
+*/
+const users = {};
 
 io.on("connection", (socket) => {
-  console.log("Connected:", socket.id);
 
   // JOIN
-  socket.on("join", (user) => {
-    users[socket.id] = user;
-    socket.broadcast.emit("user-online", user);
+  socket.on("join", ({ name }) => {
+    users[name] = socket.id;
+    io.emit("users-list", Object.keys(users));
   });
 
-  // TEXT MESSAGE
-  socket.on("chat", (data) => {
-    socket.broadcast.emit("chat", data);
+  // PRIVATE MESSAGE
+  socket.on("private-msg", ({ to, from, msg }) => {
+    if (users[to]) {
+      io.to(users[to]).emit("private-msg", { from, msg });
+    }
   });
 
-  // IMAGE MESSAGE
-  socket.on("image", (data) => {
-    socket.broadcast.emit("image", data);
+  // IMAGE
+  socket.on("private-image", ({ to, from, img }) => {
+    if (users[to]) {
+      io.to(users[to]).emit("private-image", { from, img });
+    }
   });
 
-  // VOICE MESSAGE
-  socket.on("voice", (data) => {
-    socket.broadcast.emit("voice", data);
+  // VOICE
+  socket.on("private-voice", ({ to, from, audio }) => {
+    if (users[to]) {
+      io.to(users[to]).emit("private-voice", { from, audio });
+    }
   });
 
-  // 🔊 VOICE CALL SIGNALING (WebRTC)
-  socket.on("call-offer", (data) => {
-    socket.broadcast.emit("call-offer", data);
-  });
-
-  socket.on("call-answer", (data) => {
-    socket.broadcast.emit("call-answer", data);
-  });
-
-  socket.on("call-ice", (data) => {
-    socket.broadcast.emit("call-ice", data);
+  // TYPING
+  socket.on("typing", ({ to, from }) => {
+    if (users[to]) {
+      io.to(users[to]).emit("typing", from);
+    }
   });
 
   socket.on("disconnect", () => {
-    delete users[socket.id];
-    socket.broadcast.emit("user-offline");
-    console.log("Disconnected:", socket.id);
+    for (let u in users) {
+      if (users[u] === socket.id) {
+        delete users[u];
+        break;
+      }
+    }
+    io.emit("users-list", Object.keys(users));
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log("Server running on", PORT);
-});
+server.listen(PORT, () => console.log("Server running"));
+
+  typingDiv.innerText = `${u} is typing...`;  setTimeout(() => {
+    typingEl.innerText = "";
+  }, 2000); 

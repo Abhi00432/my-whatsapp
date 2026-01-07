@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
   <meta charset="UTF-8">
   <title>Private Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,61 +12,27 @@
 
   <div class="chat-container">
 
-    <!-- HEADER -->
     <div class="chat-header">
-      <img id="mydp" src="https://i.imgur.com/6VBx3io.png">
-      <span id="myname">User</span>
-      <small class="status">Online</small>
+      <span id="chatWith">Select user</span>
+      <small id="typing"></small>
     </div>
 
-    <!-- MESSAGES -->
-    <div id="messages" class="chat-box"></div>
+    <div class="chat-main">
+      <div id="users" class="users"></div>
+      <div id="messages" class="chat-box"></div>
+    </div>
 
-    <!-- INPUT AREA -->
     <div class="chat-input">
-
-      <!-- Gallery -->
-      <label class="icon-btn">
-        📎
-        <input type="file" id="photo" accept="image/*" hidden>
-      </label>
-
-      <!-- Message -->
-      <input type="text" id="msg" placeholder="Type a message" autocomplete="off">
-
-      <!-- Voice -->
-      <button class="icon-btn" onmousedown="startVoice()" onmouseup="stopVoice()">
-        🎤
-      </button>
-
-      <!-- Send -->
-      <button class="send-btn" onclick="sendMsg()">➤</button>
-
+      <input type="file" id="photo" hidden>
+      <button onclick="photo.click()">📎</button>
+      <input id="msg" placeholder="Type message">
+      <button onclick="sendMsg()">➤</button>
     </div>
 
   </div>
 
-  <!-- SOCKET -->
   <script src="/socket.io/socket.io.js"></script>
-
-  <!-- CHAT LOGIC -->
   <script src="chat.js"></script>
-
-  <script>
-    // Load user data
-    const name = localStorage.getItem("username");
-    const dp = localStorage.getItem("dp");
-
-    if (!name) {
-      window.location.href = "/";
-    }
-
-    document.getElementById("myname").innerText = name;
-    if (dp) {
-      document.getElementById("mydp").src = dp;
-    }
-  </script>
-
 </body>
 
 </html>
