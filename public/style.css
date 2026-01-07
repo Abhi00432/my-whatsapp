@@ -1,39 +1,7 @@
 body {
   margin: 0;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
   background: #efeae2;
-}
-
-/* JOIN */
-.join-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.join-card {
-  background: #fff;
-  padding: 25px;
-  width: 280px;
-  text-align: center;
-  border-radius: 10px;
-}
-
-.preview-dp {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 10px;
-}
-
-.file-btn {
-  display: block;
-  background: #ddd;
-  padding: 8px;
-  margin: 10px 0;
-  cursor: pointer;
 }
 
 /* CHAT */
@@ -43,9 +11,10 @@ body {
   flex-direction: column;
 }
 
+/* HEADER */
 .chat-header {
   background: #075e54;
-  color: #fff;
+  color: white;
   padding: 10px;
   display: flex;
   align-items: center;
@@ -59,26 +28,34 @@ body {
   object-fit: cover;
 }
 
+/* MESSAGES */
 .messages {
   flex: 1;
   padding: 10px;
   overflow-y: auto;
 }
 
+/* MESSAGE ROW */
 .msg {
+  display: flex;
+  margin-bottom: 6px;
+}
+
+/* BUBBLE */
+.bubble {
   max-width: 65%;
   padding: 8px;
-  margin-bottom: 6px;
   border-radius: 8px;
-}
-
-.me {
-  background: #dcf8c6;
-  margin-left: auto;
-}
-
-.other {
   background: #fff;
+}
+
+/* ME */
+.msg.me {
+  justify-content: flex-end;
+}
+
+.msg.me .bubble {
+  background: #dcf8c6;
 }
 
 /* INPUT */
