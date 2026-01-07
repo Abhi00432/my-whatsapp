@@ -1,35 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Private Chat</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Join Chat</title>
+<link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="join-body">
 
-<div id="login" class="login">
-  <h3>Join Chat</h3>
-  <input id="name" placeholder="Your name">
-  <input type="file" id="dp" accept="image/*">
-  <button onclick="join()">Join</button>
+<div class="join-card">
+  <h2>Join Chat</h2>
+
+  <img id="preview" src="https://i.imgur.com/6VBx3io.png" class="dp-preview">
+
+  <input type="text" id="username" placeholder="Your name" required>
+
+  <label class="file-btn">
+    Choose Profile Photo
+    <input type="file" id="dp" accept="image/*">
+  </label>
+
+  <button onclick="joinChat()">Join</button>
 </div>
 
-<div id="chat" class="chat">
-  <div class="sidebar">
-    <h4>Online</h4>
-    <div id="users"></div>
-  </div>
+<script>
+function joinChat() {
+  const name = document.getElementById("username").value;
+  if (!name) {
+    alert("Name required");
+    return;
+  }
+  localStorage.setItem("username", name);
+  window.location.href = "chat.html";
+}
 
-  <div class="main">
-    <div id="header"></div>
-    <div id="messages"></div>
-    <div id="typing"></div>
+document.getElementById("dp").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      document.getElementById("preview").src = reader.result;
+      localStorage.setItem("dp", reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+});
+</script>
 
-    <input id="msg" placeholder="Type message">
-  </div>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="chat.js"></script>
 </body>
 </html>

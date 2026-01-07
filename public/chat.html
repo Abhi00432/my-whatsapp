@@ -1,33 +1,52 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My WhatsApp</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Private Chat</title>
+<link rel="stylesheet" href="style.css">
 </head>
+<body class="chat-body">
 
-<body>
+<div class="chat-container">
 
-  <div class="login" id="login">
-    <input id="username" placeholder="Enter your name">
-    <button onclick="join()">Join</button>
+  <div class="chat-header">
+    <img id="mydp">
+    <span id="myname"></span>
+    <small class="status">Online</small>
   </div>
 
-  <div class="chat" id="chat">
-    <div class="users" id="users"></div>
-    <div class="messages" id="messages"></div>
-    <div id="typing"></div>
+  <div id="messages" class="chat-box"></div>
 
-    <div class="controls">
-      <input id="msg" placeholder="Type message">
-      <button onclick="send()">Send</button>
-      <button onclick="recordVoice()">🎤</button>
-    </div>
+  <div class="chat-input">
+    <input type="text" id="msg" placeholder="Type a message">
+    <button onclick="sendMsg()">➤</button>
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="chat.js"></script>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const name = localStorage.getItem("username");
+const dp = localStorage.getItem("dp");
+
+document.getElementById("myname").innerText = name;
+document.getElementById("mydp").src = dp || "https://i.imgur.com/6VBx3io.png";
+
+function sendMsg(){
+  const msg = document.getElementById("msg").value;
+  if(!msg) return;
+  socket.emit("chat", { name, msg, dp });
+  document.getElementById("msg").value = "";
+}
+
+socket.on("chat", data => {
+  const div = document.createElement("div");
+  div.className = data.name === name ? "msg me" : "msg other";
+  div.innerHTML = `<b>${data.name}</b><br>${data.msg}`;
+  document.getElementById("messages").appendChild(div);
+});
+</script>
+
 </body>
-
 </html>
