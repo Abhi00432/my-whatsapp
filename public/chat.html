@@ -1,52 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Private Chat</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Private Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="chat-body">
 
-<div class="chat-container">
+  <div class="chat-container">
 
-  <div class="chat-header">
-    <img id="mydp">
-    <span id="myname"></span>
-    <small class="status">Online</small>
+    <!-- HEADER -->
+    <div class="chat-header">
+      <img id="mydp" src="https://i.imgur.com/6VBx3io.png">
+      <span id="myname">User</span>
+      <small class="status">Online</small>
+    </div>
+
+    <!-- MESSAGES -->
+    <div id="messages" class="chat-box"></div>
+
+    <!-- INPUT AREA -->
+    <div class="chat-input">
+
+      <!-- Gallery -->
+      <label class="icon-btn">
+        📎
+        <input type="file" id="photo" accept="image/*" hidden>
+      </label>
+
+      <!-- Message -->
+      <input type="text" id="msg" placeholder="Type a message" autocomplete="off">
+
+      <!-- Voice -->
+      <button class="icon-btn" onmousedown="startVoice()" onmouseup="stopVoice()">
+        🎤
+      </button>
+
+      <!-- Send -->
+      <button class="send-btn" onclick="sendMsg()">➤</button>
+
+    </div>
+
   </div>
 
-  <div id="messages" class="chat-box"></div>
+  <!-- SOCKET -->
+  <script src="/socket.io/socket.io.js"></script>
 
-  <div class="chat-input">
-    <input type="text" id="msg" placeholder="Type a message">
-    <button onclick="sendMsg()">➤</button>
-  </div>
+  <!-- CHAT LOGIC -->
+  <script src="chat.js"></script>
 
-</div>
+  <script>
+    // Load user data
+    const name = localStorage.getItem("username");
+    const dp = localStorage.getItem("dp");
 
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket = io();
-const name = localStorage.getItem("username");
-const dp = localStorage.getItem("dp");
+    if (!name) {
+      window.location.href = "/";
+    }
 
-document.getElementById("myname").innerText = name;
-document.getElementById("mydp").src = dp || "https://i.imgur.com/6VBx3io.png";
-
-function sendMsg(){
-  const msg = document.getElementById("msg").value;
-  if(!msg) return;
-  socket.emit("chat", { name, msg, dp });
-  document.getElementById("msg").value = "";
-}
-
-socket.on("chat", data => {
-  const div = document.createElement("div");
-  div.className = data.name === name ? "msg me" : "msg other";
-  div.innerHTML = `<b>${data.name}</b><br>${data.msg}`;
-  document.getElementById("messages").appendChild(div);
-});
-</script>
+    document.getElementById("myname").innerText = name;
+    if (dp) {
+      document.getElementById("mydp").src = dp;
+    }
+  </script>
 
 </body>
+
 </html>

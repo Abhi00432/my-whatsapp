@@ -1,63 +1,62 @@
 const express = require("express");
 const http = require("http");
-const path = require("path");
 const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
+  maxHttpBufferSize: 1e7 // images / audio allow
 });
 
-// static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static("public"));
 
-// root
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// users memory
-// socketId : { name, dp }
-let users = {};
+let users = {}; // socket.id -> user
 
 io.on("connection", (socket) => {
-  console.log("🟢 connected:", socket.id);
+  console.log("Connected:", socket.id);
 
-  // join with dp
-  socket.on("join", (data) => {
-    users[socket.id] = {
-      name: data.name,
-      dp: data.dp // base64 image
-    };
-    io.emit("online-users", users);
+  // JOIN
+  socket.on("join", (user) => {
+    users[socket.id] = user;
+    socket.broadcast.emit("user-online", user);
   });
 
-  // private message
-  socket.on("private-message", (data) => {
-    io.to(data.to).emit("receive-message", {
-      from: socket.id,
-      name: users[socket.id].name,
-      msg: data.msg
-    });
+  // TEXT MESSAGE
+  socket.on("chat", (data) => {
+    socket.broadcast.emit("chat", data);
   });
 
-  // typing
-  socket.on("typing", (to) => {
-    io.to(to).emit("typing", users[socket.id].name);
+  // IMAGE MESSAGE
+  socket.on("image", (data) => {
+    socket.broadcast.emit("image", data);
   });
 
-  socket.on("stopTyping", (to) => {
-    io.to(to).emit("stopTyping");
+  // VOICE MESSAGE
+  socket.on("voice", (data) => {
+    socket.broadcast.emit("voice", data);
+  });
+
+  // 🔊 VOICE CALL SIGNALING (WebRTC)
+  socket.on("call-offer", (data) => {
+    socket.broadcast.emit("call-offer", data);
+  });
+
+  socket.on("call-answer", (data) => {
+    socket.broadcast.emit("call-answer", data);
+  });
+
+  socket.on("call-ice", (data) => {
+    socket.broadcast.emit("call-ice", data);
   });
 
   socket.on("disconnect", () => {
     delete users[socket.id];
-    io.emit("online-users", users);
+    socket.broadcast.emit("user-offline");
+    console.log("Disconnected:", socket.id);
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log("🚀 Server running on", PORT);
+  console.log("Server running on", PORT);
 });

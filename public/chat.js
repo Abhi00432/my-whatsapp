@@ -1,90 +1,156 @@
+// ===== SOCKET INIT =====
 const socket = io();
 
-let myId = "";
-let selectedUser = "";
-let selectedName = "";
+// ===== USER DATA =====
+const name = localStorage.getItem("username");
+const dp = localStorage.getItem("dp");
 
-socket.on("connect", () => {
-  myId = socket.id;
-});
-
-function join() {
-  const name = document.getElementById("name").value;
-  const file = document.getElementById("dp").files[0];
-  if (!name || !file) return alert("Name & DP required");
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    socket.emit("join", { name, dp: reader.result });
-    document.getElementById("login").style.display = "none";
-    document.getElementById("chat").style.display = "flex";
-  };
-  reader.readAsDataURL(file);
+if (!name) {
+  window.location.href = "/";
 }
 
-// online users
-socket.on("online-users", (users) => {
-  const box = document.getElementById("users");
-  box.innerHTML = "";
-
-  for (let id in users) {
-    if (id === myId) continue;
-
-    const div = document.createElement("div");
-    div.className = "user";
-    div.innerHTML = `
-      <img src="${users[id].dp}">
-      <span>${users[id].name}</span>
-    `;
-    div.onclick = () => {
-      selectedUser = id;
-      selectedName = users[id].name;
-      document.getElementById("header").innerText =
-        "Chat with " + selectedName;
-      document.getElementById("messages").innerHTML = "";
-    };
-    box.appendChild(div);
-  }
-});
-
-// send message
+// ===== DOM =====
+const messages = document.getElementById("messages");
 const msgInput = document.getElementById("msg");
+const photoInput = document.getElementById("photo");
 
+// ===== JOIN =====
+socket.emit("join", { name, dp });
+
+// ===== ENTER PRESS SEND =====
 msgInput.addEventListener("keydown", (e) => {
-  if (!selectedUser) return;
-  socket.emit("typing", selectedUser);
   if (e.key === "Enter") {
-    send();
+    sendMsg();
   }
 });
 
-function send() {
-  if (!msgInput.value || !selectedUser) return;
-  socket.emit("private-message", {
-    to: selectedUser,
-    msg: msgInput.value
+// ===== SEND TEXT =====
+function sendMsg() {
+  const msg = msgInput.value.trim();
+  if (!msg) return;
+
+  const data = { name, msg, dp };
+
+  addMessage(data, "me");
+  socket.emit("chat", data);
+  msgInput.value = "";
+}
+
+// ===== RECEIVE TEXT =====
+socket.on("chat", (data) => {
+  addMessage(data, "other");
+});
+
+// ===== ADD MESSAGE UI =====
+function addMessage(data, type) {
+  const div = document.createElement("div");
+  div.className = `msg ${type}`;
+
+  div.innerHTML = `
+    <b>${data.name}</b><br>
+    ${data.msg || ""}
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// ===== IMAGE SEND =====
+if (photoInput) {
+  photoInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = {
+        name,
+        img: reader.result
+      };
+
+      addImage(data, "me");
+      socket.emit("image", data);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ===== RECEIVE IMAGE =====
+socket.on("image", (data) => {
+  addImage(data, "other");
+});
+
+function addImage(data, type) {
+  const div = document.createElement("div");
+  div.className = `msg ${type}`;
+
+  div.innerHTML = `
+    <b>${data.name}</b><br>
+    <img src="${data.img}" style="max-width:180px;border-radius:8px;">
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// ===== VOICE MESSAGE =====
+let mediaRecorder;
+let audioChunks = [];
+
+navigator.mediaDevices.getUserMedia({ audio: true })
+  .then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => {
+      audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, { type: "audio/webm" });
+      audioChunks = [];
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const data = {
+          name,
+          audio: reader.result
+        };
+
+        addVoice(data, "me");
+        socket.emit("voice", data);
+      };
+      reader.readAsDataURL(blob);
+    };
+  })
+  .catch(() => {
+    console.log("Mic permission denied");
   });
 
-  addMessage("You", msgInput.value);
-  msgInput.value = "";
-  socket.emit("stopTyping", selectedUser);
+// start / stop voice (buttons se call karo)
+function startVoice() {
+  if (mediaRecorder && mediaRecorder.state === "inactive") {
+    mediaRecorder.start();
+  }
 }
 
-socket.on("receive-message", (data) => {
-  addMessage(data.name, data.msg);
+function stopVoice() {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+}
+
+// ===== RECEIVE VOICE =====
+socket.on("voice", (data) => {
+  addVoice(data, "other");
 });
 
-function addMessage(name, msg) {
+function addVoice(data, type) {
   const div = document.createElement("div");
-  div.innerText = name + ": " + msg;
-  document.getElementById("messages").appendChild(div);
+  div.className = `msg ${type}`;
+
+  div.innerHTML = `
+    <b>${data.name}</b><br>
+    <audio controls src="${data.audio}"></audio>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+  
 }
-
-// typing
-socket.on("typing", (name) => {
-  document.getElementById("typing").innerText = name + " typing...";
-});
-
-socket.on("stopTyping", () => {
-  document.getElementById("typing").innerText = "";
-});
