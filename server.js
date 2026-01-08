@@ -8,61 +8,76 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {};   // name -> Set(socket.id)
-let online = {}; // name -> true/false
-let status = {};
-let disconnectTimers = {}; // 👈 NEW
+/*
+ users = {
+   name: {
+     sockets: Set(),
+     online: true
+   }
+ }
+*/
+const users = {};
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
     if (!name) return;
 
-    // clear pending disconnect
-    if (disconnectTimers[name]) {
-      clearTimeout(disconnectTimers[name]);
-      delete disconnectTimers[name];
+    if (!users[name]) {
+      users[name] = {
+        sockets: new Set(),
+        online: true
+      };
     }
 
-    if (!users[name]) users[name] = new Set();
-    users[name].add(socket.id);
-    online[name] = true;
+    users[name].sockets.add(socket.id);
+    users[name].online = true;
 
-    io.emit("users", Object.keys(users));
-    io.emit("online", online);
+    emitUsers();
   });
 
   socket.on("private-msg", data => {
-    const set = users[data.to];
-    if (set) set.forEach(id => io.to(id).emit("private-msg", data));
+    const user = users[data.to];
+    if (!user) return;
+
+    user.sockets.forEach(id => {
+      io.to(id).emit("private-msg", data);
+    });
   });
 
-  socket.on("voice", data => {
-    const set = users[data.to];
-    if (set) set.forEach(id => io.to(id).emit("voice", data));
+  socket.on("typing", to => {
+    const user = users[to];
+    if (!user) return;
+
+    user.sockets.forEach(id => {
+      io.to(id).emit("typing");
+    });
   });
 
   socket.on("disconnect", () => {
-    for (let name in users) {
-      if (users[name].has(socket.id)) {
-        users[name].delete(socket.id);
+    for (const name in users) {
+      const u = users[name];
 
-        // 👇 DELAY OFFLINE (IMPORTANT)
-        disconnectTimers[name] = setTimeout(() => {
-          if (!users[name] || users[name].size === 0) {
-            delete users[name];
-            online[name] = false;
-            io.emit("users", Object.keys(users));
-            io.emit("online", online);
-          }
-        }, 3000); // 3 seconds grace time
+      if (u.sockets.has(socket.id)) {
+        u.sockets.delete(socket.id);
 
+        // ❗ user offline only if NO socket left
+        if (u.sockets.size === 0) {
+          u.online = false;
+        }
+
+        emitUsers();
         break;
       }
     }
   });
+
+  function emitUsers() {
+    const list = Object.keys(users).filter(n => users[n].online);
+    io.emit("users", list);
+  }
 });
 
 server.listen(3000, () => {
-  console.log("Server running");
+  console.log("Server running on port 3000");
 });

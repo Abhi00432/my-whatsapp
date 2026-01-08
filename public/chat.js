@@ -3,9 +3,13 @@ const socket = io();
 const my = localStorage.getItem("name");
 const to = localStorage.getItem("toName");
 
+if (!my || !to) location.href = "chats.html";
+
 h.innerText = to;
 
-/* ===== SEND TEXT ===== */
+// ✅ join again is SAFE now
+socket.emit("join", my);
+
 function sendMsg() {
   if (!msg.value.trim()) return;
 
@@ -28,40 +32,22 @@ msg.addEventListener("keydown", e => {
   }
 });
 
-/* ===== RECEIVE TEXT ===== */
 socket.on("private-msg", data => {
   add("other", data.msg);
 });
 
-/* ===== TYPING UI ===== */
 socket.on("typing", () => {
   typing.style.display = "block";
   clearTimeout(window.t);
   window.t = setTimeout(() => {
     typing.style.display = "none";
-  }, 1000);
+  }, 800);
 });
 
-/* ===== MESSAGE UI ===== */
 function add(cls, text) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
-
-  const time = new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  d.innerHTML = `
-    <div>${text}</div>
-    <div class="time">${time}</div>
-    <div class="reactions">
-      <span>👍</span>
-      <span>❤️</span>
-      <span>😂</span>
-    </div>
-  `;
-
+  d.innerText = text;
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
