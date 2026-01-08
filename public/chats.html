@@ -1,36 +1,35 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chats</title>
+  <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-  <div class="header">WhatsApp</div>
-
-  <div class="tabs">
-    <div class="tab active">Chats</div>
-    <div class="tab">Status</div>
-    <div class="tab">Calls</div>
-  </div>
-
-  <div class="list">
-    <div class="user" onclick="openChat()">
-      <img src="https://i.pravatar.cc/150?img=3">
-      <div class="user-info">
-        <div class="user-name">User One</div>
-        <div class="user-status">online</div>
-      </div>
-    </div>
-  </div>
+  <div class="header">Users</div>
+  <div class="list" id="list"></div>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
-function openChat() {
-  location.href = "chat.html";
+const socket = io();
+const name = localStorage.getItem("name");
+socket.emit("join", name);
+
+socket.on("users", users => {
+  list.innerHTML = "";
+  for (let id in users) {
+    if (users[id] !== name) {
+      list.innerHTML += `<div class="user" onclick="openChat('${id}','${users[id]}')">${users[id]}</div>`;
+    }
+  }
+});
+
+function openChat(id,user){
+  localStorage.setItem("to", id);
+  localStorage.setItem("toName", user);
+  location.href="chat.html";
 }
 </script>
 

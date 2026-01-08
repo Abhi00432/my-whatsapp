@@ -1,36 +1,36 @@
 const socket = io();
+const name = localStorage.getItem("name");
+const to = localStorage.getItem("to");
+h.innerText = localStorage.getItem("toName");
 
-const name = localStorage.getItem("name") || "User";
 socket.emit("join", name);
 
-const input = document.getElementById("msgInput");
-const chat = document.getElementById("chatArea");
-const typingDiv = document.getElementById("typing");
-
-function sendMsg() {
-  if (!input.value.trim()) return;
-  socket.emit("message", input.value);
-  input.value = "";
+function send() {
+  if (!msg.value) return;
+  socket.emit("private-msg", { to, msg: msg.value });
+  add("me", msg.value);
+  msg.value = "";
 }
 
-socket.on("message", data => {
-  const msg = document.createElement("div");
-  msg.className = "msg " + (data.name === name ? "me" : "other");
-  msg.innerText = `${data.name}: ${data.text}`;
-  chat.appendChild(msg);
+socket.on("private-msg", data => {
+  add("other", data.name + ": " + data.msg);
+});
+
+function add(cls, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerText = text;
+  chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
+}
+msg.addEventListener("input", () => {
+  socket.emit("typing", to);
 });
 
-input.addEventListener("input", () => {
-  socket.emit("typing", name);
-});
-
-socket.on("typing", user => {
-  typingDiv.style.display = "block";
-  typingDiv.innerText = `${user} typing...`;
-  setTimeout(() => typingDiv.style.display = "none", 1000);
-});
-
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMsg();
-});
+socket.on("typing", name => {
+  typing.innerText = name + " is typing...";
+  clearTimeout(typing.timeout);
+  typing.timeout = setTimeout(() => {
+    typing.innerText = "";
+  }, 1000);
+}); 
