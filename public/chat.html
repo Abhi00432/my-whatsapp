@@ -8,15 +8,18 @@
 
 <div class="app">
   <div class="header" id="h"></div>
+
   <div class="chat-area" id="chat"></div>
+  <div id="typing" class="typing" style="display:none">typing...</div>
 
   <div class="input-box">
-    <input id="msg">
-    <button onclick="send()">➤</button>
+    <input id="msg" placeholder="Message">
+    <button onclick="sendMsg()">➤</button>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="chat.js"></script>
+
 </body>
 </html>

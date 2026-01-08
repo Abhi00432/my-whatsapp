@@ -8,7 +8,7 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {}; // name -> socket.id
+let users = {}; // username -> socket.id
 
 io.on("connection", socket => {
 
@@ -18,13 +18,17 @@ io.on("connection", socket => {
     io.emit("users", Object.keys(users));
   });
 
-  socket.on("private-msg", ({ toName, msg, from }) => {
-    const toSocket = users[toName];
+  socket.on("private-msg", ({ to, from, msg }) => {
+    const toSocket = users[to];
     if (toSocket) {
-      io.to(toSocket).emit("private-msg", {
-        from,
-        msg
-      });
+      io.to(toSocket).emit("private-msg", { from, msg });
+    }
+  });
+
+  socket.on("typing", to => {
+    const toSocket = users[to];
+    if (toSocket) {
+      io.to(toSocket).emit("typing");
     }
   });
 

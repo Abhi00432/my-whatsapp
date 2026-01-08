@@ -5,14 +5,14 @@ const toName = localStorage.getItem("toName");
 
 h.innerText = toName;
 
-// 🔥 JOIN AGAIN (new socket id mapping)
+// 🔥 re-join (new socket id safe)
 socket.emit("join", myName);
 
-function send() {
+function sendMsg() {
   if (!msg.value.trim()) return;
 
   socket.emit("private-msg", {
-    toName,
+    to: toName,
     from: myName,
     msg: msg.value
   });
@@ -21,8 +21,23 @@ function send() {
   msg.value = "";
 }
 
+// ✅ ENTER PRESS SEND
+msg.addEventListener("keydown", e => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    sendMsg();
+  } else {
+    socket.emit("typing", toName);
+  }
+});
+
 socket.on("private-msg", data => {
   add("other", data.from + ": " + data.msg);
+});
+
+socket.on("typing", () => {
+  typing.style.display = "block";
+  setTimeout(() => typing.style.display = "none", 1000);
 });
 
 function add(cls, text) {
