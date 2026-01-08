@@ -29,51 +29,6 @@ body {
   font-size: 17px;
 }
 
-/* USER LIST */
-.list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.user {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  gap: 10px;
-  cursor: pointer;
-  border-bottom: 1px solid #222;
-}
-
-.user:hover {
-  background: #1f2c34;
-}
-
-/* AVATAR + STATUS RING */
-.avatar {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #25d366;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  color: #000;
-  position: relative;
-}
-
-.avatar::after {
-  content: "";
-  width: 10px;
-  height: 10px;
-  background: #25d366;
-  border-radius: 50%;
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  border: 2px solid #111b21;
-}
-
 /* CHAT */
 .chat-area {
   flex: 1;
@@ -87,7 +42,7 @@ body {
   max-width: 75%;
   padding: 8px 12px;
   border-radius: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   font-size: 14px;
   position: relative;
 }
@@ -102,11 +57,36 @@ body {
   margin-right: auto;
 }
 
-.msg .time {
+.time {
   font-size: 10px;
   opacity: 0.6;
   text-align: right;
   margin-top: 4px;
+}
+
+/* REACTIONS */
+.reactions {
+  display: none;
+  position: absolute;
+  bottom: -22px;
+  right: 0;
+  background: #202c33;
+  border-radius: 12px;
+  padding: 2px 6px;
+  font-size: 14px;
+}
+
+.msg:hover .reactions {
+  display: flex;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* TYPING */
+.typing {
+  font-size: 12px;
+  color: #25d366;
+  padding: 4px 10px;
 }
 
 /* INPUT */
@@ -138,16 +118,7 @@ body {
   cursor: pointer;
 }
 
-/* SCROLLBAR */
-::-webkit-scrollbar {
-  width: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #111b21;
+.input-box button:disabled {
+  background: #128c7e;
+  cursor: not-allowed;
 }
