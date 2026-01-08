@@ -8,16 +8,22 @@
 
 <div class="app">
   <div class="header">Join</div>
+
   <div style="padding:20px">
-    <input id="name" placeholder="Your name" style="width:100%;padding:10px">
+    <input id="name" placeholder="Enter name" style="width:100%;padding:10px">
     <br><br>
     <button onclick="join()">Join</button>
   </div>
 </div>
 
 <script>
-function join(){
-  localStorage.setItem("name", name.value);
+function join() {
+  const n = document.getElementById("name").value.trim();
+  if (!n) {
+    alert("Name required");
+    return;
+  }
+  localStorage.setItem("name", n);
   location.href = "chats.html";
 }
 </script>

@@ -8,18 +8,18 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {}; // socket.id -> name
+let users = {};
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
+    if (!name) return;
     users[socket.id] = name;
     io.emit("users", users);
   });
 
   socket.on("private-msg", ({ to, msg }) => {
     io.to(to).emit("private-msg", {
-      from: socket.id,
       name: users[socket.id],
       msg
     });
