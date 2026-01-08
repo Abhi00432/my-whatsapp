@@ -1,91 +1,40 @@
 const express = require("express");
 const http = require("http");
-const { Server } = require("socket.io");
+const socketIO = require("socket.io");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  maxHttpBufferSize: 1e8
-});
+const io = socketIO(server);
 
 app.use(express.static("public"));
 
-/*
-users = {
-  username: {
-    socketId,
-    dp
-  }
-}
-*/
-const users = {};
-
 io.on("connection", socket => {
+  console.log("User connected");
 
-  // JOIN WITH DP
-  socket.on("join", ({ name, dp }) => {
-    users[name] = {
-      socketId: socket.id,
-      dp: dp || ""
-    };
-
-    // send users list with dp
-    const list = Object.keys(users).map(u => ({
-      name: u,
-      dp: users[u].dp
-    }));
-
-    io.emit("users-list", list);
+  socket.on("join", name => {
+    socket.username = name;
+    socket.broadcast.emit("status", `${name} joined`);
   });
 
-  // PRIVATE TEXT
-  socket.on("private-msg", d => {
-    if (users[d.to]) {
-      io.to(users[d.to].socketId).emit("private-msg", {
-        from: d.from,
-        msg: d.msg,
-        dp: users[d.from]?.dp || ""
-      });
-    }
+  socket.on("message", msg => {
+    io.emit("message", {
+      name: socket.username,
+      text: msg
+    });
   });
 
-  // PRIVATE IMAGE
-  socket.on("private-image", d => {
-    if (users[d.to]) {
-      io.to(users[d.to].socketId).emit("private-image", {
-        from: d.from,
-        img: d.img,
-        dp: users[d.from]?.dp || ""
-      });
-    }
-  });
-
-  // PRIVATE VOICE
-  socket.on("private-voice", d => {
-    if (users[d.to]) {
-      io.to(users[d.to].socketId).emit("private-voice", {
-        from: d.from,
-        audio: d.audio,
-        dp: users[d.from]?.dp || ""
-      });
-    }
+  socket.on("typing", name => {
+    socket.broadcast.emit("typing", name);
   });
 
   socket.on("disconnect", () => {
-    for (let u in users) {
-      if (users[u].socketId === socket.id) {
-        delete users[u];
-        break;
-      }
+    if (socket.username) {
+      socket.broadcast.emit("status", `${socket.username} left`);
     }
-
-    const list = Object.keys(users).map(u => ({
-      name: u,
-      dp: users[u].dp
-    }));
-
-    io.emit("users-list", list);
   });
 });
 
-server.listen(process.env.PORT || 3000);
+server.listen(3000, () => {
+  console.log("Server running on http://localhost:3000");
+});
