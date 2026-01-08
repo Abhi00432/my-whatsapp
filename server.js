@@ -9,17 +9,14 @@ const io = new Server(server);
 app.use(express.static("public"));
 
 let users = {};      // name -> socket.id
-let online = {};    // name -> true/false
-let lastSeen = {};  // name -> time
-let dp = {};        // name -> base64
-let status = {};    // name -> base64
+let status = {};     // name -> image(base64)
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
     users[name] = socket.id;
-    online[name] = true;
-    io.emit("presence", { online, lastSeen, dp });
+    io.emit("users", Object.keys(users));
+    io.emit("status", status);
   });
 
   socket.on("private-msg", data => {
@@ -27,36 +24,24 @@ io.on("connection", socket => {
     if (toSocket) io.to(toSocket).emit("private-msg", data);
   });
 
-  socket.on("seen", to => {
-    const toSocket = users[to];
-    if (toSocket) io.to(toSocket).emit("seen");
-  });
-
   socket.on("voice", data => {
     const toSocket = users[data.to];
     if (toSocket) io.to(toSocket).emit("voice", data);
   });
 
-  socket.on("dp", data => {
-    dp[data.name] = data.image;
-    io.emit("presence", { online, lastSeen, dp });
-  });
-
-  socket.on("status", data => {
+  socket.on("add-status", data => {
     status[data.name] = data.image;
     io.emit("status", status);
   });
 
   socket.on("disconnect", () => {
-    for (let name in users) {
-      if (users[name] === socket.id) {
-        online[name] = false;
-        lastSeen[name] = new Date().toLocaleTimeString();
-        delete users[name];
+    for (let n in users) {
+      if (users[n] === socket.id) {
+        delete users[n];
         break;
       }
     }
-    io.emit("presence", { online, lastSeen, dp });
+    io.emit("users", Object.keys(users));
   });
 });
 

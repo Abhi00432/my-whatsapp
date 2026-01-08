@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="header">Status</div>
+
+  <input type="file" accept="image/*" onchange="addStatus(this)">
+  <div id="list"></div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="status.js"></script>
+</body>
+</html>
