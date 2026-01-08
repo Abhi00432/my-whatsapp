@@ -1,30 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+  <div class="header">Chats</div>
+
+  <div class="list" id="usersList">
+    <div class="empty">No users online</div>
+  </div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
-const name = localStorage.getItem("name");
+const myName = localStorage.getItem("name");
 
-if (!name) location.href = "join.html";
+if (!myName) {
+  location.href = "join.html";
+}
 
-// ✅ JOIN ONLY HERE
-socket.emit("join", name);
+// ✅ JOIN (safe, multiple pages allowed)
+socket.emit("join", myName);
+
+const usersList = document.getElementById("usersList");
 
 socket.on("users", users => {
-  list.innerHTML = "";
-  users.forEach(u => {
-    if (u !== name) {
-      list.innerHTML += `
-        <div class="user" onclick="openChat('${u}')">${u}</div>
-      `;
-    }
+  usersList.innerHTML = "";
+
+  const otherUsers = users.filter(u => u !== myName);
+
+  if (otherUsers.length === 0) {
+    usersList.innerHTML = `<div class="empty">No users online</div>`;
+    return;
+  }
+
+  otherUsers.forEach(u => {
+    const div = document.createElement("div");
+    div.className = "user";
+    div.innerHTML = `
+      <div class="avatar">${u.charAt(0).toUpperCase()}</div>
+      <div class="info">
+        <div class="name">${u}</div>
+        <div class="status online">online</div>
+      </div>
+    `;
+    div.onclick = () => {
+      localStorage.setItem("toName", u);
+      location.href = "chat.html";
+    };
+    usersList.appendChild(div);
   });
 });
-
-function openChat(u) {
-  localStorage.setItem("toName", u);
-  location.href = "chat.html";
-}
 </script>
-<div>
-  <h2>Welcome, <span id="username"></span></h2>
-  <h3>Online Users:</h3>
-  <div id="list"></div> 
+
+</body>
+</html>

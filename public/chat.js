@@ -92,3 +92,22 @@ function add(cls, text) {
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
+function add(cls, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+
+  const time = new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+
+  d.innerHTML = `
+    <div>${text}</div>
+    <div class="time">${time}</div>
+  `;
+
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+    io.emit("online", online);
+    io.emit("status", status);    
