@@ -15,21 +15,27 @@
 <script>
 const socket = io();
 const name = localStorage.getItem("name");
+
+// 🔥 JOIN ONLY HERE
 socket.emit("join", name);
 
 socket.on("users", users => {
   list.innerHTML = "";
   for (let id in users) {
     if (users[id] !== name) {
-      list.innerHTML += `<div class="user" onclick="openChat('${id}','${users[id]}')">${users[id]}</div>`;
+      list.innerHTML += `
+        <div class="user" onclick="openChat('${id}','${users[id]}')">
+          ${users[id]}
+        </div>
+      `;
     }
   }
 });
 
-function openChat(id,user){
+function openChat(id, user) {
   localStorage.setItem("to", id);
   localStorage.setItem("toName", user);
-  location.href="chat.html";
+  location.href = "chat.html";
 }
 </script>
 

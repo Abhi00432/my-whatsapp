@@ -1,13 +1,18 @@
 const socket = io();
+
 const name = localStorage.getItem("name");
 const to = localStorage.getItem("to");
+
 h.innerText = localStorage.getItem("toName");
 
-socket.emit("join", name);
+function send(){
+  if(!msg.value.trim()) return;
 
-function send() {
-  if (!msg.value) return;
-  socket.emit("private-msg", { to, msg: msg.value });
+  socket.emit("private-msg", {
+    to,
+    msg: msg.value
+  });
+
   add("me", msg.value);
   msg.value = "";
 }
@@ -23,14 +28,3 @@ function add(cls, text) {
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
 }
-msg.addEventListener("input", () => {
-  socket.emit("typing", to);
-});
-
-socket.on("typing", name => {
-  typing.innerText = name + " is typing...";
-  clearTimeout(typing.timeout);
-  typing.timeout = setTimeout(() => {
-    typing.innerText = "";
-  }, 1000);
-}); 
