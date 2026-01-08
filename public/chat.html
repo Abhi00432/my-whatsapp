@@ -1,34 +1,26 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="hi">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <div class="chat">
+  <div class="container">
+    <div class="header">Chat</div>
 
-    <!-- HEADER -->
-    <div class="chat-header">
-      <img id="headerDp" class="header-dp">
-      <span id="chatName"></span>
+    <div class="chat-area" id="chatArea">
+      <div class="msg other">नमस्ते 👋</div>
     </div>
 
-    <!-- MESSAGES -->
-    <div id="messages" class="messages"></div>
-
-    <!-- INPUT BAR -->
-    <div class="input-bar">
-      <input id="msg" placeholder="Type a message">
+    <div class="input-box">
+      <input id="msgInput" type="text" placeholder="Message लिखें">
       <button onclick="sendMsg()">➤</button>
     </div>
-
   </div>
 
-  <script src="/socket.io/socket.io.js"></script>
   <script src="chat.js"></script>
 </body>
-
 </html>

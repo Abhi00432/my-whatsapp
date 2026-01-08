@@ -1,55 +1,20 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="hi">
 <head>
-  <title>Join Chat</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <div class="join-container">
-    <div class="join-card">
+  <div class="container">
+    <div class="header">Chat App</div>
 
-      <h2>Join Chat</h2>
-
-      <img id="previewDp" class="preview-dp" src="https://i.imgur.com/6VBx3io.png">
-
-      <input id="username" placeholder="Enter your name">
-
-      <label class="file-btn">
-        Choose Profile Photo
-        <input type="file" id="dpInput" accept="image/*" hidden>
-      </label>
-
-      <button onclick="join()">Join</button>
-
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+      <a href="join.html">Chat Start करें</a>
     </div>
   </div>
 
-  <script>
-    const preview = document.getElementById("previewDp");
-    const dpInput = document.getElementById("dpInput");
-
-    dpInput.onchange = e => {
-      const f = e.target.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => {
-        preview.src = r.result;
-        localStorage.setItem("dp", r.result);
-      };
-      r.readAsDataURL(f);
-    };
-
-    function join() {
-      const name = document.getElementById("username").value.trim();
-      if (!name) return alert("Enter name");
-      localStorage.setItem("username", name);
-      location.href = "/chat.html";
-    }
-  </script>
-
 </body>
-
 </html>

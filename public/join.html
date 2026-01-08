@@ -1,110 +1,24 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join</title>
-
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #075e54;
-      font-family: Arial;
-    }
-
-    form {
-      background: #fff;
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      width: 280px;
-    }
-
-    img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 10px;
-    }
-
-    input[type="file"] {
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-
-    button {
-      width: 100%;
-      padding: 10px;
-      background: #128c7e;
-      color: #fff;
-      border: none;
-      font-size: 16px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <form id="f" enctype="multipart/form-data">
+  <div class="container">
+    <div class="header">Join Chat</div>
 
-    <img id="preview" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-
-    <!-- 🔥 REAL FILE INPUT (VISIBLE) -->
-    <input type="file" id="dp" name="dp" accept="image/*" required>
-
-    <input type="text" name="name" placeholder="Your name" required>
-
-    <button>Join</button>
-  </form>
-
-  <script>
-    /* device id */
-    let deviceId = localStorage.deviceId;
-    if (!deviceId) {
-      let deviceId = localStorage.deviceId;
-      if (!deviceId) {
-        deviceId = Math.random().toString(36).substring(2) + Date.now();
-        localStorage.deviceId = deviceId;
-      }
-
-      localStorage.deviceId = deviceId;
-    }
-
-    /* preview */
-    dp.onchange = () => {
-      if (dp.files[0]) {
-        preview.src = URL.createObjectURL(dp.files[0]);
-      }
-    };
-
-    f.onsubmit = async e => {
-      e.preventDefault();
-
-      const fd = new FormData(f);
-      fd.append("deviceId", deviceId);
-
-      const r = await fetch("/join", {
-        method: "POST",
-        body: fd
-      });
-
-      const user = await r.json();
-      localStorage.user = JSON.stringify(user);
-
-      location.href = "/chat";
-    };
-  </script>
+    <div style="padding:20px;">
+      <input type="text" placeholder="Name लिखें" style="width:100%;padding:10px;">
+      <br><br>
+      <a href="chat.html">Join</a>
+    </div>
+  </div>
 
 </body>
 
