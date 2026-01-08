@@ -8,19 +8,21 @@
 </head>
 <body>
 
-  <div class="container">
-    <div class="header">Chat</div>
+<div class="app">
+  <div class="header">User One</div>
 
-    <div class="chat-area" id="chatArea">
-      <div class="msg other">नमस्ते 👋</div>
-    </div>
-
-    <div class="input-box">
-      <input id="msgInput" type="text" placeholder="Message लिखें">
-      <button onclick="sendMsg()">➤</button>
-    </div>
+  <div class="chat-area" id="chatArea">
+    <div class="msg other">Hello 👋</div>
   </div>
 
-  <script src="chat.js"></script>
+  <div class="typing" id="typing" style="display:none;">typing...</div>
+
+  <div class="input-box">
+    <input id="msgInput" placeholder="Message">
+    <button onclick="sendMsg()">➤</button>
+  </div>
+</div>
+
+<script src="chat.js"></script>
 </body>
 </html>

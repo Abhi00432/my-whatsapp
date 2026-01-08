@@ -1,21 +1,24 @@
-function sendMsg() {
-  const input = document.getElementById("msgInput");
-  const text = input.value.trim();
-  if (!text) return;
+const input = document.getElementById("msgInput");
+const chat = document.getElementById("chatArea");
+const typing = document.getElementById("typing");
 
-  const chat = document.getElementById("chatArea");
+function sendMsg() {
+  if (!input.value.trim()) return;
+
   const msg = document.createElement("div");
   msg.className = "msg me";
-  msg.innerText = text;
-
+  msg.innerText = input.value;
   chat.appendChild(msg);
+
   input.value = "";
   chat.scrollTop = chat.scrollHeight;
 }
 
-document.getElementById("msgInput").addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {
-    sendMsg();
-  }
+input.addEventListener("input", () => {
+  typing.style.display = "block";
+  setTimeout(() => typing.style.display = "none", 1000);
 });
-document.getElementById("sendBtn").addEventListener("click", sendMsg);    
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMsg();
+});

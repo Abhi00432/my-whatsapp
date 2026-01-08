@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="hi">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <div class="container">
-    <div class="header">Join Chat</div>
+<div class="app">
+  <div class="header">Join</div>
 
-    <div style="padding:20px;">
-      <input type="text" placeholder="Name लिखें" style="width:100%;padding:10px;">
-      <br><br>
-      <a href="chat.html">Join</a>
-    </div>
+  <div style="padding:20px;">
+    <input id="name" placeholder="Apna naam likhiye" style="width:100%;padding:10px;">
+    <br><br>
+    <button onclick="join()">Join</button>
   </div>
+</div>
+
+<script>
+function join() {
+  localStorage.setItem("name", document.getElementById("name").value);
+  location.href = "chats.html";
+}
+</script>
 
 </body>
-
 </html>
