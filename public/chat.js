@@ -4,7 +4,7 @@ const my = localStorage.getItem("name");
 const to = localStorage.getItem("toName");
 
 h.innerText = to;
-socket.emit("join", my);
+      
 
 /* ---------- TEXT MESSAGE ---------- */
 function sendMsg(){
