@@ -1,15 +1,19 @@
 const socket = io();
 
-const name = localStorage.getItem("name");
-const to = localStorage.getItem("to");
+const myName = localStorage.getItem("name");
+const toName = localStorage.getItem("toName");
 
-h.innerText = localStorage.getItem("toName");
+h.innerText = toName;
 
-function send(){
-  if(!msg.value.trim()) return;
+// 🔥 JOIN AGAIN (new socket id mapping)
+socket.emit("join", myName);
+
+function send() {
+  if (!msg.value.trim()) return;
 
   socket.emit("private-msg", {
-    to,
+    toName,
+    from: myName,
     msg: msg.value
   });
 
@@ -18,7 +22,7 @@ function send(){
 }
 
 socket.on("private-msg", data => {
-  add("other", data.name + ": " + data.msg);
+  add("other", data.from + ": " + data.msg);
 });
 
 function add(cls, text) {

@@ -14,38 +14,25 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const name = localStorage.getItem("name");
-
-// 🔥 अगर name नहीं है तो वापस join पर
-if (!name) {
-  location.href = "join.html";
-}
+if (!name) location.href = "join.html";
 
 const socket = io();
-
-// 🔥 JOIN WITH VALID NAME
 socket.emit("join", name);
 
 socket.on("users", users => {
   list.innerHTML = "";
-
-  Object.keys(users).forEach(id => {
-    // 🔥 अब खुद को सही तरीके से hide करेंगे
-    if (users[id] && users[id] !== name) {
+  users.forEach(u => {
+    if (u !== name) {
       list.innerHTML += `
-        <div class="user" onclick="openChat('${id}','${users[id]}')">
-          ${users[id]}
+        <div class="user" onclick="openChat('${u}')">
+          ${u}
         </div>
       `;
     }
   });
-
-  if (!list.innerHTML) {
-    list.innerHTML = `<div style="padding:20px;color:#777">No users online</div>`;
-  }
 });
 
-function openChat(id, user) {
-  localStorage.setItem("to", id);
+function openChat(user) {
   localStorage.setItem("toName", user);
   location.href = "chat.html";
 }

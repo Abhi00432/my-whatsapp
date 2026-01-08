@@ -8,26 +8,34 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {};
+let users = {}; // name -> socket.id
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
     if (!name) return;
-    users[socket.id] = name;
-    io.emit("users", users);
+    users[name] = socket.id;
+    io.emit("users", Object.keys(users));
   });
 
-  socket.on("private-msg", ({ to, msg }) => {
-    io.to(to).emit("private-msg", {
-      name: users[socket.id],
-      msg
-    });
+  socket.on("private-msg", ({ toName, msg, from }) => {
+    const toSocket = users[toName];
+    if (toSocket) {
+      io.to(toSocket).emit("private-msg", {
+        from,
+        msg
+      });
+    }
   });
 
   socket.on("disconnect", () => {
-    delete users[socket.id];
-    io.emit("users", users);
+    for (let name in users) {
+      if (users[name] === socket.id) {
+        delete users[name];
+        break;
+      }
+    }
+    io.emit("users", Object.keys(users));
   });
 });
 
