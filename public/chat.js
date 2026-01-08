@@ -1,49 +1,74 @@
 const socket = io();
+const my = localStorage.getItem("name");
+const to = localStorage.getItem("toName");
 
-const myName = localStorage.getItem("name");
-const toName = localStorage.getItem("toName");
+h.innerText = to;
+socket.emit("join", my);
 
-h.innerText = toName;
-
-// 🔥 re-join (new socket id safe)
-socket.emit("join", myName);
-
-function sendMsg() {
-  if (!msg.value.trim()) return;
+function sendMsg(){
+  if(!msg.value.trim()) return;
 
   socket.emit("private-msg", {
-    to: toName,
-    from: myName,
-    msg: msg.value
+    from: my,
+    to,
+    msg: msg.value,
+    type:"text"
   });
 
   add("me", msg.value);
-  msg.value = "";
+  msg.value="";
 }
 
-// ✅ ENTER PRESS SEND
-msg.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
+msg.addEventListener("keydown", e=>{
+  if(e.key==="Enter"){
     e.preventDefault();
     sendMsg();
-  } else {
-    socket.emit("typing", toName);
   }
 });
 
-socket.on("private-msg", data => {
-  add("other", data.from + ": " + data.msg);
+socket.on("private-msg", data=>{
+  if(data.type==="text"){
+    add("other", data.msg);
+    socket.emit("seen", data.from);
+  }
 });
 
-socket.on("typing", () => {
-  typing.style.display = "block";
-  setTimeout(() => typing.style.display = "none", 1000);
+socket.on("seen", ()=>{
+  seen.innerText="✔✔ Seen";
 });
 
-function add(cls, text) {
-  const d = document.createElement("div");
-  d.className = "msg " + cls;
-  d.innerText = text;
+function add(cls,text){
+  const d=document.createElement("div");
+  d.className="msg "+cls;
+  d.innerText=text;
   chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+  chat.scrollTop=chat.scrollHeight;
 }
+
+/* 🎤 VOICE */
+let rec, chunks=[];
+async function record(){
+  const s = await navigator.mediaDevices.getUserMedia({audio:true});
+  rec = new MediaRecorder(s);
+  rec.start();
+  rec.ondataavailable=e=>chunks.push(e.data);
+  setTimeout(()=>{
+    rec.stop();
+    rec.onstop=()=>{
+      const blob=new Blob(chunks,{type:"audio/webm"});
+      const reader=new FileReader();
+      reader.onload=()=>{
+        socket.emit("voice",{to,from:my,audio:reader.result});
+      };
+      reader.readAsDataURL(blob);
+      chunks=[];
+    };
+  },3000);
+}
+
+socket.on("voice", data=>{
+  const a=document.createElement("audio");
+  a.src=data.audio;
+  a.controls=true;
+  chat.appendChild(a);
+});

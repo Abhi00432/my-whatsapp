@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width">
-  <link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -14,27 +14,29 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const name = localStorage.getItem("name");
-if (!name) location.href = "join.html";
+if (!name) location.href="join.html";
 
 const socket = io();
 socket.emit("join", name);
 
 socket.on("users", users => {
-  list.innerHTML = "";
-  users.forEach(u => {
+  list.innerHTML="";
+  for (let u in users) {
     if (u !== name) {
       list.innerHTML += `
         <div class="user" onclick="openChat('${u}')">
           ${u}
-        </div>
-      `;
+          <span style="float:right;color:${users[u]?'green':'gray'}">
+            ${users[u]?'online':'offline'}
+          </span>
+        </div>`;
     }
-  });
+  }
 });
 
-function openChat(user) {
-  localStorage.setItem("toName", user);
-  location.href = "chat.html";
+function openChat(u){
+  localStorage.setItem("toName", u);
+  location.href="chat.html";
 }
 </script>
 

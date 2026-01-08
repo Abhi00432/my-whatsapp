@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width">
-  <link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -10,16 +10,16 @@
   <div class="header" id="h"></div>
 
   <div class="chat-area" id="chat"></div>
-  <div id="typing" class="typing" style="display:none">typing...</div>
+  <div id="seen" style="font-size:12px;color:gray"></div>
 
   <div class="input-box">
     <input id="msg" placeholder="Message">
     <button onclick="sendMsg()">➤</button>
+    <button onclick="record()">🎤</button>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="chat.js"></script>
-
 </body>
 </html>
