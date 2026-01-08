@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width">
-<link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width">
+  <title>Status</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
   <div class="header">Status</div>
 
-  <input type="file" accept="image/*" onchange="addStatus(this)">
+  <div style="padding:10px">
+    <input type="file" accept="image/*" id="statusFile">
+  </div>
+
   <div id="list"></div>
 </div>
 

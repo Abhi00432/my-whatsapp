@@ -8,20 +8,35 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {};      // name -> socket.id
-let status = {};     // name -> image(base64)
+let users = {};        // name -> socket.id
+let online = {};      // name -> true/false
+let status = {};
+
+socket.on("add-status", data => {
+  status[data.name] = data.image;
+  io.emit("status", status);
+});
+
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
+    if (!name) return;
     users[name] = socket.id;
+    online[name] = true;
     io.emit("users", Object.keys(users));
+    io.emit("online", online);
     io.emit("status", status);
   });
 
   socket.on("private-msg", data => {
     const toSocket = users[data.to];
     if (toSocket) io.to(toSocket).emit("private-msg", data);
+  });
+
+  socket.on("seen", to => {
+    const toSocket = users[to];
+    if (toSocket) io.to(toSocket).emit("seen");
   });
 
   socket.on("voice", data => {
@@ -35,12 +50,14 @@ io.on("connection", socket => {
   });
 
   socket.on("disconnect", () => {
-    for (let n in users) {
-      if (users[n] === socket.id) {
-        delete users[n];
+    for (let name in users) {
+      if (users[name] === socket.id) {
+        online[name] = false;
+        delete users[name];
         break;
       }
     }
+    io.emit("online", online);
     io.emit("users", Object.keys(users));
   });
 });
