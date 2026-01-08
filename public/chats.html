@@ -7,36 +7,58 @@
 <body>
 
 <div class="app">
-  <div class="header">Users</div>
+  <div class="header">Chats</div>
+
+  <div style="padding:10px">
+    <input type="file" accept="image/*" onchange="uploadDP(this)">
+    <button onclick="uploadStatus()">Add Status</button>
+  </div>
+
   <div class="list" id="list"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const name = localStorage.getItem("name");
-if (!name) location.href="join.html";
-
+const me = localStorage.getItem("name");
+if(!me) location.href="join.html";
 const socket = io();
-socket.emit("join", name);
+socket.emit("join", me);
 
-socket.on("users", users => {
+socket.on("presence", data=>{
   list.innerHTML="";
-  for (let u in users) {
-    if (u !== name) {
-      list.innerHTML += `
-        <div class="user" onclick="openChat('${u}')">
-          ${u}
-          <span style="float:right;color:${users[u]?'green':'gray'}">
-            ${users[u]?'online':'offline'}
-          </span>
-        </div>`;
+  for(let u in data.online){
+    if(u!==me){
+      list.innerHTML+=`
+      <div class="user" onclick="openChat('${u}')">
+        <img src="${data.dp[u]||'https://i.pravatar.cc/40'}">
+        <b>${u}</b>
+        <span class="dot ${data.online[u]?'on':'off'}"></span>
+        <small>${data.online[u]?'online':'last seen '+(data.lastSeen[u]||'')}</small>
+      </div>`;
     }
   }
 });
 
 function openChat(u){
-  localStorage.setItem("toName", u);
+  localStorage.setItem("toName",u);
   location.href="chat.html";
+}
+
+function uploadDP(inp){
+  const r=new FileReader();
+  r.onload=()=>socket.emit("dp",{name:me,image:r.result});
+  r.readAsDataURL(inp.files[0]);
+}
+
+function uploadStatus(){
+  const f=document.createElement("input");
+  f.type="file"; f.accept="image/*";
+  f.onchange=()=>{
+    const r=new FileReader();
+    r.onload=()=>socket.emit("status",{name:me,image:r.result});
+    r.readAsDataURL(f.files[0]);
+  };
+  f.click();
 }
 </script>
 

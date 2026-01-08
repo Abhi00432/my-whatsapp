@@ -8,22 +8,23 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let users = {};        // name -> socket.id
-let online = {};      // name -> true
+let users = {};      // name -> socket.id
+let online = {};    // name -> true/false
+let lastSeen = {};  // name -> time
+let dp = {};        // name -> base64
+let status = {};    // name -> base64
 
 io.on("connection", socket => {
 
   socket.on("join", name => {
     users[name] = socket.id;
     online[name] = true;
-    io.emit("users", online);
+    io.emit("presence", { online, lastSeen, dp });
   });
 
   socket.on("private-msg", data => {
     const toSocket = users[data.to];
-    if (toSocket) {
-      io.to(toSocket).emit("private-msg", data);
-    }
+    if (toSocket) io.to(toSocket).emit("private-msg", data);
   });
 
   socket.on("seen", to => {
@@ -36,15 +37,26 @@ io.on("connection", socket => {
     if (toSocket) io.to(toSocket).emit("voice", data);
   });
 
+  socket.on("dp", data => {
+    dp[data.name] = data.image;
+    io.emit("presence", { online, lastSeen, dp });
+  });
+
+  socket.on("status", data => {
+    status[data.name] = data.image;
+    io.emit("status", status);
+  });
+
   socket.on("disconnect", () => {
     for (let name in users) {
       if (users[name] === socket.id) {
         online[name] = false;
+        lastSeen[name] = new Date().toLocaleTimeString();
         delete users[name];
         break;
       }
     }
-    io.emit("users", online);
+    io.emit("presence", { online, lastSeen, dp });
   });
 });
 

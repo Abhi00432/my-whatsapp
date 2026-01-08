@@ -87,3 +87,31 @@ body {
 .input-box button:disabled {
   background: #ccc;
 }
+
+.user {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #eee
+}
+
+.user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%
+}
+
+.dot.on {
+  background: green
+}
+
+.dot.off {
+  background: gray
+}
