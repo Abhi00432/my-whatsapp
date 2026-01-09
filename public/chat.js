@@ -3,12 +3,9 @@ const socket = io();
 const my = localStorage.getItem("name");
 const to = localStorage.getItem("toName");
 
-if (!my || !to) location.href = "chats.html";
-
 h.innerText = to;
 
-// ✅ join again is SAFE now
-socket.emit("join", my);
+/* ================= TEXT MESSAGE ================= */
 
 function sendMsg() {
   if (!msg.value.trim()) return;
@@ -32,8 +29,93 @@ msg.addEventListener("keydown", e => {
   }
 });
 
+/* ================= VOICE MESSAGE (FINAL FIX) ================= */
+
+let mediaRecorder;
+let audioChunks = [];
+let isRecording = false;
+let stream = null;
+
+// Detect supported mime type
+function getMimeType() {
+  if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus"))
+    return "audio/webm;codecs=opus";
+  if (MediaRecorder.isTypeSupported("audio/webm"))
+    return "audio/webm";
+  return "";
+}
+
+mic.addEventListener("click", async () => {
+  // START RECORD
+  if (!isRecording) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      alert("Microphone permission denied");
+      return;
+    }
+
+    audioChunks = [];
+    const mimeType = getMimeType();
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+
+    mediaRecorder.start();
+    isRecording = true;
+    mic.innerText = "⏹";
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data && e.data.size > 0) {
+        audioChunks.push(e.data);
+      }
+    };
+
+  }
+  // STOP RECORD
+  else {
+    mediaRecorder.stop();
+    isRecording = false;
+    mic.innerText = "🎤";
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(audioChunks, {
+        type: mediaRecorder.mimeType || "audio/webm"
+      });
+
+      if (blob.size < 1000) {
+        console.log("Empty audio ignored");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        socket.emit("voice", {
+          from: my,
+          to,
+          audio: reader.result
+        });
+      };
+      reader.readAsDataURL(blob);
+
+      if (stream) {
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+    };
+  }
+});
+
+/* ================= RECEIVE ================= */
+
 socket.on("private-msg", data => {
   add("other", data.msg);
+});
+
+socket.on("voice", data => {
+  const audio = document.createElement("audio");
+  audio.src = data.audio;
+  audio.controls = true;
+  chat.appendChild(audio);
+  chat.scrollTop = chat.scrollHeight;
 });
 
 socket.on("typing", () => {
@@ -43,6 +125,8 @@ socket.on("typing", () => {
     typing.style.display = "none";
   }, 800);
 });
+
+/* ================= UI ================= */
 
 function add(cls, text) {
   const d = document.createElement("div");
