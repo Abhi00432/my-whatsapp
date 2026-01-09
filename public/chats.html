@@ -1,46 +1,55 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width">
-  <link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-  <div class="header">Chats</div>
+  <div class="header">
+    <h1>WhatsApp</h1>
+    <input type="file" accept="image/*" onchange="setDP(this)">
+  </div>
+
+  <div class="tabs">
+    <div class="tab active">Chats</div>
+    <div class="tab" onclick="go('status.html')">Status</div>
+    <div class="tab" onclick="go('calls.html')">Calls</div>
+  </div>
+
   <div class="list" id="list"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io();
-const myName = localStorage.getItem("name");
+const socket=io();
+const me=localStorage.getItem("name");
+socket.emit("join",me);
 
-if (!myName) location.href = "join.html";
+function go(p){location.href=p}
 
-socket.emit("join", myName);
-
-socket.on("users", users => {
-  list.innerHTML = "";
-
-  const others = users.filter(u => u !== myName);
-
-  if (!others.length) {
-    list.innerHTML = `<div class="empty">No users online</div>`;
-    return;
-  }
-
-  others.forEach(u => {
-    const div = document.createElement("div");
-    div.className = "user";
-    div.innerText = u;
-    div.onclick = () => {
-      localStorage.setItem("toName", u);
-      location.href = "chat.html";
-    };
-    list.appendChild(div);
+socket.on("users",users=>{
+  list.innerHTML="";
+  users.filter(u=>u!==me).forEach(u=>{
+    list.innerHTML+=`
+    <div class="item" onclick="openChat('${u}')">
+      <div class="avatar">${u[0]}</div>
+      <div>${u}</div>
+    </div>`;
   });
 });
+
+function openChat(u){
+  localStorage.setItem("toName",u);
+  location.href="chat.html";
+}
+
+function setDP(inp){
+  const r=new FileReader();
+  r.onload=()=>socket.emit("dp",{name:me,img:r.result});
+  r.readAsDataURL(inp.files[0]);
+}
 </script>
 
 </body>

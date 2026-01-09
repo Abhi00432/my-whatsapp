@@ -1,22 +1,22 @@
-const socket = io();
-const me = localStorage.getItem("name");
-socket.emit("join", me);
+const socket=io();
+const me=localStorage.getItem("name");
+socket.emit("join",me);
 
-socket.on("status", data=>{
-  list.innerHTML="";
+function uploadStatus(inp){
+  const r=new FileReader();
+  r.onload=()=>socket.emit("add-status",{name:me,image:r.result});
+  r.readAsDataURL(inp.files[0]);
+}
+
+socket.on("status",data=>{
+  statusList.innerHTML="";
   for(let u in data){
-    list.innerHTML+=`
-      <div>
-        <b>${u}</b><br>
-        <img src="${data[u]}" style="width:100%">
-      </div>`;
+    statusList.innerHTML+=`
+    <div class="item">
+      <div class="avatar status-ring">${u[0]}</div>
+      <img src="${data[u]}" width="80">
+    </div>`;
   }
 });
 
-function addStatus(inp){
-  const r=new FileReader();
-  r.onload=()=>{
-    socket.emit("add-status",{name:me,image:r.result});
-  };
-  r.readAsDataURL(inp.files[0]);
-}
+function go(p){location.href=p}

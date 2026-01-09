@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width">
-  <title>Status</title>
-  <link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="app">
-  <div class="header">Status</div>
-
-  <div style="padding:10px">
-    <input type="file" accept="image/*" id="statusFile">
+  <div class="header">
+    <h1>Status</h1>
+    <input type="file" accept="image/*" onchange="uploadStatus(this)">
   </div>
 
-  <div id="list"></div>
+  <div class="tabs">
+    <div class="tab" onclick="go('chats.html')">Chats</div>
+    <div class="tab active">Status</div>
+    <div class="tab" onclick="go('calls.html')">Calls</div>
+  </div>
+
+  <div class="list" id="statusList"></div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
