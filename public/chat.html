@@ -1,7 +1,19 @@
-<div id="enc">🔒 Messages are end-to-end encrypted</div>
-<div id="chat"></div>
-<input id="msg">
-<button onclick="send()">Send</button>
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>🔒 End-to-End Encrypted Chat</header>
+
+<div class="chat-box" id="chat"></div>
+
+<div class="input-box">
+  <input id="msg" placeholder="Type a message">
+  <button onclick="send()">➤</button>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
-<script type="module" src="chat.js"></script>
+<script src="chat.js"></script>
+</body>
+</html>

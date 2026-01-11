@@ -1,16 +1,22 @@
-import { encrypt, decrypt, key } from "./crypto.js";
-
 const socket = io();
 const chat = document.getElementById("chat");
 const input = document.getElementById("msg");
 
-window.send = async () => {
-  const enc = await encrypt(input.value);
-  socket.emit("private-message", enc);
-  input.value = "";
-};
+function send() {
+  if (!input.value) return;
 
-socket.on("private-message", async data => {
-  const text = await decrypt(data);
-  chat.innerHTML += `<div>${text}</div>`;
+  const div = document.createElement("div");
+  div.className = "msg me";
+  div.innerText = input.value;
+  chat.appendChild(div);
+
+  socket.emit("message", input.value);
+  input.value = "";
+}
+
+socket.on("message", msg => {
+  const div = document.createElement("div");
+  div.className = "msg other";
+  div.innerText = msg;
+  chat.appendChild(div);
 });
