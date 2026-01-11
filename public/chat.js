@@ -1,6 +1,12 @@
 const socket = io();
+
 const chat = document.getElementById("chat");
 const input = document.getElementById("msg");
+
+// SAME room name on both users
+const room = "abhi-rahul"; // example
+
+socket.emit("join", room);
 
 function send() {
   if (!input.value) return;
@@ -10,7 +16,11 @@ function send() {
   div.innerText = input.value;
   chat.appendChild(div);
 
-  socket.emit("message", input.value);
+  socket.emit("message", {
+    room: room,
+    msg: input.value
+  });
+
   input.value = "";
 }
 

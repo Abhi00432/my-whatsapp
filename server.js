@@ -9,11 +9,16 @@ const io = new Server(server);
 app.use(express.static("public"));
 
 io.on("connection", socket => {
-  socket.on("message", msg => {
-    socket.broadcast.emit("message", msg);
+  socket.on("join", room => {
+    socket.join(room);
+  });
+
+  socket.on("message", ({ room, msg }) => {
+    socket.to(room).emit("message", msg);
   });
 });
 
-server.listen(3000, () => {
-  console.log("WhatsApp clone running on port 3000");
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log("WhatsApp clone running on", PORT);
 });
