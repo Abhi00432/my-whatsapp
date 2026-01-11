@@ -1,14 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp | Join</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <header>WhatsApp</header>
-  <div class="nav">
-    <a href="chats.html">CHATS</a>
-    <a href="status.html">STATUS</a>
-    <a href="calls.html">CALLS</a>
-  </div>
+<body class="mobile">
+
+<div class="join-card">
+  <h2>WhatsApp</h2>
+
+  <label class="dp-picker">
+    <input type="file" id="dp" accept="image/*">
+    <img id="preview" src="https://via.placeholder.com/100">
+    <p>Select DP</p>
+  </label>
+
+  <input id="name" placeholder="Enter your name">
+  <input id="room" placeholder="Chat code (same for both)">
+
+  <button onclick="join()">Continue</button>
+</div>
+
+<script src="join.js"></script>
 </body>
 </html>
