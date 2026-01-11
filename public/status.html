@@ -1,12 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<header>Status</header>
-<div class="chat-box">
-  <p>No status available</p>
+<body class="mobile">
+
+<header class="chat-header">Status</header>
+
+<div class="status-box">
+  <input type="file" id="img">
+  <input id="text" placeholder="Write status">
+  <button onclick="post()">Post Status</button>
 </div>
+
+<div id="list"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="status.js"></script>
 </body>
 </html>

@@ -10,23 +10,21 @@ app.use(express.static("public"));
 
 io.on("connection", socket => {
 
-  socket.on("join", room => {
-    socket.join(room);
-  });
-
-  socket.on("intro", user => {
-    socket.to(user.room).emit("intro", user);
+  socket.on("join", user => {
+    socket.join(user.room);
   });
 
   socket.on("message", data => {
     socket.to(data.room).emit("message", data);
   });
 
+  socket.on("status", data => {
+    socket.to(data.room).emit("status", data);
+  });
+
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
-  console.log("WhatsApp clone running on", PORT)
+  console.log("WhatsApp SUPER clone running", PORT)
 );
-
-      

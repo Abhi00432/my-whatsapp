@@ -111,6 +111,19 @@ body.mobile {
     margin-top: 20px;
   }
 }
-
-
-          
+.msg small {
+  font-size: 10px;
+  margin-left: 6px;
+  float: right;
+  color: gray;
+}
+.msg.me small {
+  color: green;
+}
+@media (min-width: 600px) {
+  body.mobile {
+    border: none;
+    height: 100vh;
+    margin-top: 0;
+  }
+}     

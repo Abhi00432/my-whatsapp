@@ -1,44 +1,51 @@
+import { encrypt, decrypt } from "./crypto.js";
+
 const socket = io();
 const chat = document.getElementById("chat");
 const input = document.getElementById("msg");
 
 const me = JSON.parse(localStorage.getItem("user"));
+socket.emit("join", me);
 
-socket.emit("join", me.room);
-socket.emit("intro", me);
-
-socket.on("intro", user => {
-  document.getElementById("otherName").innerText = user.name;
-  document.getElementById("otherDp").src = user.dp;
-});
-
-function send() {
+async function send() {
   if (!input.value) return;
 
-  addMsg(input.value, "me");
+  const encrypted = await encrypt(input.value);
+  addMsg(input.value, "me", "✔");
 
   socket.emit("message", {
     room: me.room,
-    msg: input.value,
-    user: me
+    payload: encrypted
   });
 
   input.value = "";
 }
 
-socket.on("message", data => {
-  addMsg(data.msg, "other");
+socket.on("message", async data => {
+  const text = await decrypt(data.payload);
+  addMsg(text, "other", "");
 });
 
-function addMsg(text, type) {
+function addMsg(text, type, tick) {
   const div = document.createElement("div");
   div.className = "msg " + type;
-  div.innerText = text;
+  div.innerHTML = `<span>${text}</span><small class="tick">${tick}</small>`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
-input.addEventListener("keyup", e => {
+input.addEventListener("keydown", e => {
   if (e.key === "Enter") send();
 });
-document.getElementById("sendBtn").onclick = send;  
-        
+input.addEventListener("input", () => {
+  socket.emit("typing", { room: me.room, name: me.name });
+});
+
+const typingDiv = document.getElementById("typing");
+let typingTimeout;    
+socket.on("typing", name => {
+  typingDiv.innerText = `${name} is typing...`;
+  clearTimeout(typingTimeout);    
+  typingTimeout = setTimeout(() => {
+    typingDiv.innerText = "";
+  }, 1000);
+});
