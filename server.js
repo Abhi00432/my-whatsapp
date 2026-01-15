@@ -12,7 +12,7 @@ io.on("connection", socket => {
 
   socket.on("join", room => {
     socket.join(room);
-    console.log("joined room:", room);
+    console.log("user joined:", room);
   });
 
   socket.on("intro", user => {
@@ -23,17 +23,19 @@ io.on("connection", socket => {
     socket.to(data.room).emit("message", data);
   });
 
-  socket.on("typing", data => {
-    socket.to(data.room).emit("typing", data.name);
-  });
-
-  socket.on("seen", room => {
-    socket.to(room).emit("seen");
-  });
-
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () =>
-  console.log("WhatsApp clone running on", PORT)
-);
+server.listen(PORT, () => {
+  console.log("WhatsApp clone running on", PORT);
+});
+// public/chat.js
+// safety: direct chat.html open na ho
+if (!localStorage.getItem("user")) {
+  location.href = "index.html";
+} 
+const socket = io();    
+
+const chat = document.getElementById("chat"); 
+
+            
