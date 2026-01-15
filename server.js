@@ -12,7 +12,7 @@ io.on("connection", socket => {
 
   socket.on("join", room => {
     socket.join(room);
-    console.log("user joined:", room);
+    console.log("user joined room:", room);
   });
 
   socket.on("intro", user => {
@@ -29,13 +29,3 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("WhatsApp clone running on", PORT);
 });
-// public/chat.js
-// safety: direct chat.html open na ho
-if (!localStorage.getItem("user")) {
-  location.href = "index.html";
-} 
-const socket = io();    
-
-const chat = document.getElementById("chat"); 
-
-            
