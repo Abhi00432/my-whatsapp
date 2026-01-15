@@ -9,13 +9,18 @@ const header = document.getElementById("otherName");
 
 const me = JSON.parse(localStorage.getItem("user"));
 
-socket.emit("join", me.room);
-socket.emit("intro", me);
+// 🔥 JOIN WITH USER INFO
+socket.emit("join", {
+  room: me.room,
+  user: me
+});
 
+// 🔥 RECEIVE OTHER USER INFO
 socket.on("intro", user => {
   header.innerText = user.name;
 });
 
+// SEND MESSAGE
 function send() {
   if (!input.value.trim()) return;
 
@@ -29,6 +34,7 @@ function send() {
   input.value = "";
 }
 
+// RECEIVE MESSAGE
 socket.on("message", data => {
   addMsg(data.text, "other");
 });
