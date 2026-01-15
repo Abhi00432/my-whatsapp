@@ -8,29 +8,34 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-// room -> last user info store
-const rooms = {};
+const rooms = {}; // room -> last user info
 
 io.on("connection", socket => {
 
   socket.on("join", ({ room, user }) => {
     socket.join(room);
 
-    // agar room me koi pehle se hai
     if (rooms[room]) {
-      // naye user ko purane user ka intro bhejo
+      // purane user ka intro naye ko
       socket.emit("intro", rooms[room]);
 
-      // purane user ko naye ka intro bhejo
+      // naye user ka intro purane ko
       socket.to(room).emit("intro", user);
     }
 
-    // room ka latest user store karo
     rooms[room] = user;
+  });
+
+  socket.on("typing", data => {
+    socket.to(data.room).emit("typing", data.name);
   });
 
   socket.on("message", data => {
     socket.to(data.room).emit("message", data);
+  });
+
+  socket.on("seen", room => {
+    socket.to(room).emit("seen");
   });
 
 });
