@@ -1,31 +1,46 @@
 const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-app.use(express.json());
-
-// static files serve करने के लिए
 app.use(express.static("public"));
 
-app.post("/api/location", (req, res) => {
-  const { lat, lon, acc } = req.body;
+const rooms = {}; // room -> last user info
 
-  if (!lat || !lon) {
-    return res.sendStatus(400);
-  }
+io.on("connection", socket => {
 
-  const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+  socket.on("join", ({ room, user }) => {
+    socket.join(room);
 
-  console.log("📍 New Location Received");
-  console.log("Latitude :", lat);
-  console.log("Longitude:", lon);
-  console.log("Accuracy :", acc, "meters");
-  console.log("🗺️ Map Link:", mapLink);
-  console.log("--------------------------------");
+    if (rooms[room]) {
+      // purane user ka intro naye ko
+      socket.emit("intro", rooms[room]);
 
-  res.sendStatus(200);
+      // naye user ka intro purane ko
+      socket.to(room).emit("intro", user);
+    }
+
+    rooms[room] = user;
+  });
+
+  socket.on("typing", data => {
+    socket.to(data.room).emit("typing", data.name);
+  });
+
+  socket.on("message", data => {
+    socket.to(data.room).emit("message", data);
+  });
+
+  socket.on("seen", room => {
+    socket.to(room).emit("seen");
+  });
+
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
+server.listen(PORT, () => {
+  console.log("WhatsApp clone running on", PORT);
 });
