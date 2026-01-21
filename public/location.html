@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <title>Location Access</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      padding: 20px;
+      text-align: center;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-width: 400px;
+      margin: auto;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #25d366;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1ebe5d;
+    }
+    .result {
+      margin-top: 15px;
+      font-size: 14px;
+      word-break: break-all;
+    }
+    a {
+      color: #1a73e8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>📍 Location Access</h2>
+    <p>आगे बढ़ने के लिए कृपया अपनी location allow करें</p>
+
+    <button onclick="getLocation()">Allow Location</button>
+
+    <div class="result" id="output"></div>
+  </div>
+
+  <script>
+    function getLocation() {
+      const output = document.getElementById("output");
+
+      if (!navigator.geolocation) {
+        output.innerHTML = "❌ आपका browser location support नहीं करता।";
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const acc = position.coords.accuracy;
+
+          const mapLink = `https://www.google.com/maps?q=${lat},${lon}`;
+
+          output.innerHTML = `
+            ✅ Location प्राप्त हो गई<br><br>
+            <b>Latitude:</b> ${lat}<br>
+            <b>Longitude:</b> ${lon}<br>
+            <b>Accuracy:</b> ${acc} meters<br><br>
+            👉 <a href="${mapLink}" target="_blank">Google Maps पर देखें</a>
+          `;
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            output.innerHTML = "❌ आपने location की अनुमति नहीं दी।";
+          } else {
+            output.innerHTML = "❌ Location प्राप्त नहीं हो सकी।";
+          }
+        }
+      );
+    }
+  </script>
+
+</body>
+</html>
